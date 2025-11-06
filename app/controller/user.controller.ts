@@ -3,7 +3,6 @@ import httpStatusCodes from 'http-status-codes';
 import User from '../models/user.model';
 import ErrorHandler from '../utils/errorHandler';
 import { generateAuthToken } from '../utils/generateHash';
-import Logger from '../utils/logger';
 export let Users: User[] = [];
 
 export async function createNewUser(req: Request, res: Response) {
@@ -24,24 +23,35 @@ export async function createNewUser(req: Request, res: Response) {
   await newUser.hashPassword();
   let token = "";
   token = await generateAuthToken({ id: newUser.id, email: newUser.email });
-  Logger.INFO(JSON.stringify({ ...newUser, token }))
   return res
     .status(httpStatusCodes.CREATED)
     .json({ message: 'New User Created', token });
 }
 
-export function deleteUser(req: Request, res: Response) {
+export function getUsers(req: Request, res: Response, next: NextFunction) {
 
-  let { id } = req.params;
-  let userExists = Users.find((u) => u.id == id);
-  if (!userExists) {
-    throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
+  const { id } = req.query;
+  const email = String(req.query.email || '');
+
+  if (Users.length == 0) {
+    throw new ErrorHandler({ statusCode: httpStatusCodes.NO_CONTENT, errorMessage: 'No Users available' })
   }
-  let deleteIndex = Users.findIndex((u) => u.id == id);
-  Users.splice(deleteIndex, 1);
+
+  if (id) {
+    let found = Users.find(u => u.id == id);
+    if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
+    else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
+  }
+
+  if (email) {
+    let found = Users.filter(u => u.email.includes(email));
+    if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
+    else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that email:' + email });
+  }
+
   return res
     .status(httpStatusCodes.OK)
-    .json({ message: `User with id ${id} is deleted` });
+    .json({ message: 'Users fetched', data: Users });
 
 }
 
@@ -54,44 +64,29 @@ export function updateUser(req: Request, res: Response) {
     throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
   }
   let updateIndex = Users.findIndex((u) => u.id == id);
-  console.log(Users[updateIndex],'before-------------');
   Users[updateIndex].name = name;
   Users[updateIndex].email = email;
   Users[updateIndex].password = password;
   Users[updateIndex].updatedAt = new Date();
-  console.log(Users[updateIndex],'AFTER-------------');
-  
+
   return res
     .status(httpStatusCodes.OK)
     .json({ message: `User detail updated` });
 
 }
 
-export function getUsers(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { id } = req.query;
-    const email = String(req.query.email || '');
+export async function deleteUser(req: Request, res: Response) {
 
-    if (Users.length == 0) {
-      throw new ErrorHandler({ statusCode: httpStatusCodes.NO_CONTENT, errorMessage: 'No Users available' })
-    }
+  let { id } = req.params;
+  let userExists = Users.find((u) => u.id == id);
 
-    if (id) {
-      let found = Users.find(u => u.id == id);
-      if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
-      else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
-    }
-
-    if (email) {
-      let found = Users.filter(u => u.email.includes(email));
-      if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
-      else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that email:' + email });
-    }
-
-    return res
-      .status(httpStatusCodes.OK)
-      .json({ message: 'Users fetched', data: Users });
-  } catch (error) {
-    next(error)
+  if (!userExists) {
+    throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
   }
+  let deleteIndex = Users.findIndex((u) => u.id == id);
+  Users.splice(deleteIndex, 1);
+  return res
+    .status(httpStatusCodes.OK)
+    .json({ message: `User with id ${id} is deleted` });
+
 }

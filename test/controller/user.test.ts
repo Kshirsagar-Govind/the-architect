@@ -36,6 +36,7 @@ describe('- USER API TESTING ', () => {
         }
     });
 
+
     it('POST /api/user should create new user', async () => {
         const res = await request(app)
             .post('/api/user')
@@ -43,13 +44,13 @@ describe('- USER API TESTING ', () => {
         // .set('Accept', 'application/json');
         expect(res.status).toBe(201);
         expect(res.body).toHaveProperty("token");
-    });
+    }, 1000);
 
     it('GET /api/user should fetch all users', async () => {
         const res = await request(app).get('/api/user');
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('data');
-    });
+    }, 1000);
 
     it('PUT /api/user/:id should update user using id', async () => {
         let user = Users[3]
@@ -60,8 +61,17 @@ describe('- USER API TESTING ', () => {
             .set('Authorization', `Bearer ${token}`)
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('message')
-    });
-    // it('DELETE /api/user/:id should delete user using id', async () => { });
+    }, 1000);
+
+    it('DELETE /api/user/:id should delete user using id', async () => {
+        let user = Users[1]
+        let token = await generateAuthToken({ id: user.id, email: user.email })
+        const res = await request(app)
+            .delete(`/api/user/${user.id}`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveProperty('message')
+    }, 1000);
     afterAll(() => {
         Users.length = 0; // clear memory between test runs
     });
