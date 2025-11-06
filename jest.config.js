@@ -8,4 +8,12 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   testMatch: ['**/test/**/*.test.ts'],
   clearMocks: true,
+  collectCoverage: true,
+  collectCoverageFrom: [
+    'app/controller/**/*.ts',
+    'app/utils/**/*.ts',
+    'app/models/**/*.ts',
+    'app/middlewares/**/*.ts',
+  ],
+  coverageDirectory: 'coverage',
 };

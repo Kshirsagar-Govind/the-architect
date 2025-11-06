@@ -3,14 +3,17 @@ import httpStatusCodes from 'http-status-codes';
 import User from '../models/user.model';
 import ErrorHandler from '../utils/errorHandler';
 import { generateAuthToken } from '../utils/generateHash';
+import Logger from '../utils/logger';
 export let Users: User[] = [];
 
 export async function createNewUser(req: Request, res: Response) {
+
   let { name, email, password } = req.body;
   let userExists = Users.find((u) => u.email == email);
   if (userExists) {
-    throw new ErrorHandler({ statusCode: httpStatusCodes.CONFLICT, errorMessage: 'Account already exists' })
+    throw new ErrorHandler({ statusCode: httpStatusCodes.CONFLICT, errorMessage: 'Account already exists' });
   }
+
   const newUser = new User({
     id: 'NA',
     name,
@@ -26,6 +29,7 @@ export async function createNewUser(req: Request, res: Response) {
   return res
     .status(httpStatusCodes.CREATED)
     .json({ message: 'New User Created', token });
+
 }
 
 export function getUsers(req: Request, res: Response, next: NextFunction) {
@@ -40,7 +44,7 @@ export function getUsers(req: Request, res: Response, next: NextFunction) {
   if (id) {
     let found = Users.find(u => u.id == id);
     if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
-    else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
+    else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with given id:' + id });
   }
 
   if (email) {
@@ -61,7 +65,7 @@ export function updateUser(req: Request, res: Response) {
   let { name, email, password } = req.body;
   let userExists = Users.find((u) => u.id == id);
   if (!userExists) {
-    throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
+    throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with given id:' + id });
   }
   let updateIndex = Users.findIndex((u) => u.id == id);
   Users[updateIndex].name = name;
@@ -76,17 +80,15 @@ export function updateUser(req: Request, res: Response) {
 }
 
 export async function deleteUser(req: Request, res: Response) {
-
   let { id } = req.params;
   let userExists = Users.find((u) => u.id == id);
 
   if (!userExists) {
-    throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that id:' + id });
+    throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with given id:' + id });
   }
   let deleteIndex = Users.findIndex((u) => u.id == id);
   Users.splice(deleteIndex, 1);
   return res
     .status(httpStatusCodes.OK)
     .json({ message: `User with id ${id} is deleted` });
-
 }

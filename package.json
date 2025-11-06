@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "npm run build && node dist/server.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand --coverage"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

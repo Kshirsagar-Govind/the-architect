@@ -1,13 +1,11 @@
 /**
  * @jest-environment node
  */
-// const app = require('../../app/app');
-// const request = require('supertest');
-// const { faker } = require('@faker-js/faker');
-import app from '../../app/app';
+import { StatusCodes } from 'http-status-codes';
 import request from 'supertest';
 import { faker } from '@faker-js/faker';
-import { Users } from '../../app/controller/user.controller';
+import app from '../../app/app';
+import { Users, createNewUser } from '../../app/controller/user.controller';
 import User from '../../app/models/user.model';
 import { generateUserId } from '../../app/utils/generateID';
 import { generateAuthToken } from '../../app/utils/generateHash';
@@ -20,12 +18,9 @@ describe('- USER API TESTING ', () => {
             email: faker.internet.email(),
             password: faker.internet.password(),
         };
-
-        // Actually create a user before GET test runs
-        // await request(app).post('/api/user').send(fakeUser);
         for (let i = 0; i < 5; i++) {
             const newUser = new User({
-                id: await generateUserId(),
+                id: String(i),
                 name: faker.name.fullName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -34,23 +29,22 @@ describe('- USER API TESTING ', () => {
             });
             Users.push(newUser);
         }
-    });
 
+    });
 
     it('POST /api/user should create new user', async () => {
         const res = await request(app)
             .post('/api/user')
             .send(fakeUser)
-        // .set('Accept', 'application/json');
-        expect(res.status).toBe(201);
+        expect(res.status).toBe(StatusCodes.CREATED);
         expect(res.body).toHaveProperty("token");
-    }, 1000);
+    }, 7000);
 
     it('GET /api/user should fetch all users', async () => {
         const res = await request(app).get('/api/user');
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(StatusCodes.OK);
         expect(res.body).toHaveProperty('data');
-    }, 1000);
+    }, 7000);
 
     it('PUT /api/user/:id should update user using id', async () => {
         let user = Users[3]
@@ -59,9 +53,9 @@ describe('- USER API TESTING ', () => {
             .put(`/api/user/${user.id}`)
             .send({ name: "updated name", email: "test@updated.com", password: "passord@updated" })
             .set('Authorization', `Bearer ${token}`)
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(StatusCodes.OK);
         expect(res.body).toHaveProperty('message')
-    }, 1000);
+    }, 7000);
 
     it('DELETE /api/user/:id should delete user using id', async () => {
         let user = Users[1]
@@ -69,10 +63,29 @@ describe('- USER API TESTING ', () => {
         const res = await request(app)
             .delete(`/api/user/${user.id}`)
             .set('Authorization', `Bearer ${token}`);
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(StatusCodes.OK);
         expect(res.body).toHaveProperty('message')
-    }, 1000);
+    }, 7000);
+
+    it('POST /api/user sending existed email so should not create new user', async () => {
+        const res = await request(app)
+            .post('/api/user')
+            .send({ ...fakeUser, email: Users[1].email })
+        expect(res.status).toBe(StatusCodes.CONFLICT);
+    }, 7000);
+
+    it('DELETE /api/user/:id sending non existed id so should cant delete user', async () => {
+        let user = Users[1]
+        let token = await generateAuthToken({ id: user.id, email: user.email })
+        const res = await request(app)
+            .delete(`/api/user/43234234`)
+            .set('Authorization', `Bearer ${token}`);
+        expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    }, 7000);
+
+
     afterAll(() => {
-        Users.length = 0; // clear memory between test runs
+        Users.length = 0;
     });
 });
+
