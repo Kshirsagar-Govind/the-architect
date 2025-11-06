@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Define folder + file paths separately
-const logDir = path.join(__dirname, 'logs');
+const logDir = path.join(__dirname, '../../logs');
 const logFilePath = path.join(logDir, 'app.logs.txt');
 
 // Ensure the logs directory exists

@@ -26,7 +26,7 @@ export default class User implements IUser {
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
-  hashPassowrd() {
-    this.password = generateHash.call({ round: 10 }, this.password);
+  async hashPassword() {
+    this.password = await generateHash.call({ round: 10 }, this.password);
   }
 }

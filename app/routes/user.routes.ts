@@ -9,7 +9,7 @@ import VerifyToken from '../middlewares/verifyToken.middleware';
 let route = express.Router();
 
 route.get('/', getUsers);
-route.post('/', VerifyToken, createNewUser);
+route.post('/', createNewUser);
 route.put('/:id', VerifyToken, updateUser);
 route.delete('/:id', VerifyToken, deleteUser);
 
