@@ -5,7 +5,7 @@ import {
   getUsers,
   updateUser,
 } from '../controller/user.controller';
-import VerifyToken from '../middlewares/verifyToken';
+import VerifyToken from '../middlewares/verifyToken.middleware';
 let route = express.Router();
 
 route.get('/', getUsers);
