@@ -1,42 +1,22 @@
-import { StatusCodes } from 'http-status-codes';
+import { NextFunction, Request, Response } from "express";
+import ErrorHandler from '../utils/errorHandler';
+import Logger from '../utils/logger';
 
-interface IError {
-  statusCode?: number;
-  errorMessage: string;
-}
+export default function ErrorHandlerMiddleware(
+  err: ErrorHandler | Error,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  Logger.ERROR(err.message || 'Unknown error occurred');
 
-export default class GlobalErrorManager extends Error {
-  statusCode: number;
-  errorMessage: string;
-
-  constructor(data: IError) {
-    super(data.errorMessage);
-    this.statusCode = data.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
-    this.errorMessage = data.errorMessage || 'Something went wrong';
-
-    // Required for extending built-ins like Error in TS
-    Object.setPrototypeOf(this, GlobalErrorManager.prototype);
+  if (err instanceof ErrorHandler) {
+    return res
+      .status(err.statusCode)
+      .json({ message: err.errorMessage || 'An error occurred' });
   }
 
-  // ✅ Static factory helpers
-  static badRequest(msg: string): GlobalErrorManager {
-    return new GlobalErrorManager({
-      statusCode: StatusCodes.BAD_REQUEST,
-      errorMessage: msg,
-    });
-  }
-
-  static notFound(msg: string): GlobalErrorManager {
-    return new GlobalErrorManager({
-      statusCode: StatusCodes.NOT_FOUND,
-      errorMessage: msg,
-    });
-  }
-
-  static unauthorized(msg: string): GlobalErrorManager {
-    return new GlobalErrorManager({
-      statusCode: StatusCodes.UNAUTHORIZED,
-      errorMessage: msg,
-    });
-  }
+  return res
+    .status(500)
+    .json({ message: 'Internal Server Error', error: err.message });
 }
