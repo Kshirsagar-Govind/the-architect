@@ -6,3 +6,10 @@ export function generateUserId() {
     charset: 'hex',
   });
 }
+
+export function generateProjectId() {
+  return randomstring.generate({
+    length: 16,
+    charset: 'hex',
+  });
+}
