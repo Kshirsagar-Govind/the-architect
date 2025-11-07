@@ -5,9 +5,8 @@ import { StatusCodes } from 'http-status-codes';
 import request from 'supertest';
 import { faker } from '@faker-js/faker';
 import app from '../../app/app';
-import { Users, createNewUser } from '../../app/controller/user.controller';
+import { Users } from '../../app/controller/user.controller';
 import User from '../../app/models/user.model';
-import { generateUserId } from '../../app/utils/generateID';
 import { generateAuthToken } from '../../app/utils/generateHash';
 
 let fakeUser: { name: string; email: string; password: string };
