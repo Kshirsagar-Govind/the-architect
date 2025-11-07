@@ -66,14 +66,14 @@ describe('- USER API TESTING ', () => {
         expect(res.body).toHaveProperty('message')
     }, 7000);
 
-    it('POST /api/user sending existed email so should not create new user', async () => {
+    it('NEGATIVE POST /api/user sending existed email so should not create new user', async () => {
         const res = await request(app)
             .post('/api/user')
             .send({ ...fakeUser, email: Users[1].email })
         expect(res.status).toBe(StatusCodes.CONFLICT);
     }, 7000);
 
-    it('DELETE /api/user/:id sending non existed id so should cant delete user', async () => {
+    it('NEGATIVE DELETE /api/user/:id sending non existed id so should cant delete user', async () => {
         let user = Users[1]
         let token = await generateAuthToken({ id: user.id, email: user.email })
         const res = await request(app)

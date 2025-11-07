@@ -11,6 +11,17 @@ module.exports = {
     '!app/**/app.ts',
     '!app/**/index.ts',
   ],
+  reporters: [
+    "default",
+    ["jest-summary-reporter", { "failuresOnly": false }],
+    ["jest-stare", {
+      "resultDir": "jest-stare",
+      "reportTitle": "API Test Report",
+      "additionalResultsProcessors": [],
+      "coverageLink": "",
+      "reportHeadline": "Node Test Summary"
+    }]
+  ],
   coverageDirectory: 'coverage',
   transform: {
     '^.+\\.ts$': ['ts-jest', {
