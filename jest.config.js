@@ -2,19 +2,21 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  moduleFileExtensions: ['ts', 'js', 'json'],
   testMatch: ['**/test/**/*.test.ts'],
-  transform: { '^.+\\.(ts|tsx)$': 'babel-jest' },
-  maxWorkers: 1,
-  runInBand: true,
   clearMocks: true,
-  collectCoverage: true,
-  coverageProvider: 'v8', // works better in StackBlitz
+  collectCoverage: false,
   collectCoverageFrom: [
-    'app/controller/**/*.ts',
-    'app/utils/**/*.ts',
-    'app/models/**/*.ts',
-    'app/middlewares/**/*.ts',
+    'app/**/*.ts',
+    '!app/**/*.d.ts',
+    '!app/**/app.ts',
+    '!app/**/index.ts',
   ],
   coverageDirectory: 'coverage',
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      isolatedModules: false,
+      diagnostics: false,
+      tsconfig: 'tsconfig.json',
+    }],
+  },
 };

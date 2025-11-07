@@ -7,8 +7,6 @@ import Logger from '../utils/logger';
 export let Users: User[] = [];
 
 export async function createNewUser(req: Request, res: Response) {
-  console.log('--------------COVERAGE TEST ACTIVE');
-
   let { name, email, password } = req.body;
   let userExists = Users.find((u) => u.email == email);
   if (userExists) {

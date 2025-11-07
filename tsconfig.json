@@ -8,7 +8,9 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "sourceMap": true,
+    "inlineSourceMap": true
   },
   "include": ["app/**/*.ts", "server.ts", "test/**/*.ts"]
 }

@@ -85,6 +85,6 @@ describe('- USER API TESTING ', () => {
 
     afterAll(() => {
         Users.length = 0;
-    });
+      });
 });
 
