@@ -1,11 +1,12 @@
 import { Response, Request, NextFunction } from 'express';
 import httpStatusCodes from 'http-status-codes';
-import User from '../models/user.model';
+import User, { IUser } from '../models/user.model';
+import { decodeJWTToken } from '../utils/generateHash';
 const jwt = require('jsonwebtoken');
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: User;
+    user?: IUser;
   }
 }
 export default function VerifyToken(
@@ -20,8 +21,9 @@ export default function VerifyToken(
         .status(httpStatusCodes.BAD_REQUEST)
         .json({ message: 'NO TOKEN' });
     }
+    
     let token = authorization.split(' ')[1];
-    const secretKey = process.env.JWT_SECRET || 'your_secret_key';
+    const secretKey = process.env.SECRET_KEY || 'your_secret_key';
     jwt.verify(token, secretKey, (err: any, decoded: any) => {
       if (err) {
         return res

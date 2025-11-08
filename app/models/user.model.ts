@@ -1,7 +1,7 @@
 import { generateHash } from '../utils/generateHash';
 import { generateUserId } from '../utils/generateID';
 import mongoose, { Schema, Document, Model } from 'mongoose';
-interface IUser extends Document {
+export interface IUser extends Document {
   id: string;
   name: string;
   email: string;
@@ -23,7 +23,7 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
 );
 
 UserSchema.methods.hashPassword = async function () {
-  this.password = generateHash.call({ round: 10 }, this.password)
+  this.password = await generateHash.call({ round: 10 }, this.password)
 }
-const UserModel: Model<IUser> = mongoose.model<IUser>('Users', UserSchema, 'ProjectManagement');
+const UserModel: Model<IUser> = mongoose.model<IUser>('Users', UserSchema);
 export default UserModel;

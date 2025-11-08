@@ -1,7 +1,7 @@
 import { generateProjectId } from "../utils/generateID";
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-interface IProject extends Document {
+export interface IProject extends Document {
     id: string;
     title: string;
     desc: string;
@@ -21,5 +21,5 @@ const ProjectSchema: Schema<IProject> = new mongoose.Schema({
   }
 )
 
-const ProjectModel: Model<IProject> = mongoose.model<IProject>('Projects', ProjectSchema, 'ProjectManagement');
+const ProjectModel: Model<IProject> = mongoose.model<IProject>('Projects', ProjectSchema);
 export default ProjectModel;

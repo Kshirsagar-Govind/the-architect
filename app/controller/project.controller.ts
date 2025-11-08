@@ -10,7 +10,7 @@ export async function getProject(req: Request, res: Response) {
     const { title, desc } = req.query;
 
     if (!title && !desc) {
-        let Projects = await Project.find({});
+        let Projects = await Project.find();
         return res.status(httpStatusCodes.OK).json({ message: "Fetch", data: Projects });
     }
     let found = await Project.find(
@@ -51,8 +51,9 @@ export async function updatedProject(req: Request, res: Response) {
 
 export async function deleteProject(req: Request, res: Response) {
     const { id } = req.params;
-    if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_GATEWAY, errorMessage: 'Please provider id' })
-    await Project.deleteOne({ id });
+    if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'Please provider id' })
+    let deleted = await Project.deleteOne({ id });
+    if (deleted.deletedCount==0) throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'Project not deleted, invalid Project ID' })
     return res
         .status(httpStatusCodes.OK)
         .json({ message: 'Project Deleted' });
