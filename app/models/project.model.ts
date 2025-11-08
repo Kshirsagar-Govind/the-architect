@@ -1,31 +1,25 @@
 import { generateProjectId } from "../utils/generateID";
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
-interface IProject {
-    id: String;
-    title: String;
-    desc: String;
-    owner: String;
-    members: String[]; // array of user ids
-    createdOn: Date;
-    updatedOn: Date;
+interface IProject extends Document {
+    id: string;
+    title: string;
+    desc: string;
+    owner: string;
+    members: Array<string>;
 }
 
-export default class Project implements IProject {
-    id: String;
-    title: String;
-    desc: String;
-    owner: String;
-    members: String[]; // array of user ids
-    createdOn: Date;
-    updatedOn: Date;
+const ProjectSchema: Schema<IProject> = new mongoose.Schema({
+    id: { type:String, default:generateProjectId },
+    title: { type: String, required:true },
+    desc: { type: String, default: '' },
+    owner: { type: String, default: '' },
+    members: { type: [String], default: [] }
+},
+  {
+    timestamps: true
+  }
+)
 
-    constructor(data: IProject) {
-        this.id = generateProjectId();
-        this.title = data.title;
-        this.desc = data.desc;
-        this.owner = data.owner;
-        this.members = data.members;
-        this.createdOn = new Date();
-        this.updatedOn = new Date();
-    }
-}
+const ProjectModel: Model<IProject> = mongoose.model<IProject>('Projects', ProjectSchema, 'ProjectManagement');
+export default ProjectModel;

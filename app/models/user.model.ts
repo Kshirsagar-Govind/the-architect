@@ -1,32 +1,29 @@
 import { generateHash } from '../utils/generateHash';
 import { generateUserId } from '../utils/generateID';
-
-interface IUser {
+import mongoose, { Schema, Document, Model } from 'mongoose';
+interface IUser extends Document {
   id: string;
   name: string;
   email: string;
   password: string;
   createdAt: Date;
   updatedAt: Date;
+  hashPassword(): Promise<void>;
 }
 
-export default class User implements IUser {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
+const UserSchema: Schema<IUser> = new mongoose.Schema({
+  id: { type: String, default: generateUserId },
+  name: { type: String, required:true },
+  email: { type: String, required:true },
+  password: { type: String, required:true },
+},
+  {
+    timestamps: true
+  }
+);
 
-  constructor(data: IUser) {
-    this.id = generateUserId();
-    this.name = data.name;
-    this.email = data.email;
-    this.password = data.password;
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
-  }
-  async hashPassword() {
-    this.password = await generateHash.call({ round: 10 }, this.password);
-  }
+UserSchema.methods.hashPassword = async function () {
+  this.password = generateHash.call({ round: 10 }, this.password)
 }
+const UserModel: Model<IUser> = mongoose.model<IUser>('Users', UserSchema, 'ProjectManagement');
+export default UserModel;

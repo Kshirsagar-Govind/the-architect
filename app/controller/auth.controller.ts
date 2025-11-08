@@ -1,9 +1,9 @@
+/*
 import { NextFunction, Request, Response } from 'express';
 import httpStatusCodes from 'http-status-codes';
 import User from '../models/user.model';
 import ErrorHandler from '../utils/errorHandler';
 import { verifyPassword, generateAuthToken, generateHash } from '../utils/generateHash';
-export let Users: User[] = [];
 
 export async function userLogin(req: Request, res: Response) {
     const { email, password } = req.body;
@@ -42,3 +42,4 @@ export async function refreshToken(req: Request, res: Response) {
 }
 
 export async function userLogout(req: Request, res: Response) { }
+*/
