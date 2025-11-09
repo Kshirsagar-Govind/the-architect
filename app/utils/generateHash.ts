@@ -3,10 +3,10 @@ import httpStatusCodes from 'http-status-codes';
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const secretKey = process.env.SECRET_KEY || 'your_secret_key';
-export interface IDecodedToken{
-    id:string;
-    email:string;
-  }
+export interface IDecodedToken {
+  id: string;
+  email: string;
+}
 
 export function generateSalt(saltRound: number = 5) {
   return bcrypt.genSaltSync(saltRound);
@@ -20,7 +20,11 @@ export async function generateAuthToken(data: Object) {
   return await jwt.sign(data, secretKey);
 }
 
-export async function verifyPassword(password: String, hash: String) { 
+export async function generateForgetPasswordToken(data: Object) {
+  return await jwt.sign(data , secretKey, { expiresIn: '15m' });
+}
+
+export async function verifyPassword(password: String, hash: String) {
   return await bcrypt.compare(password, hash);
 }
 

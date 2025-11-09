@@ -4,7 +4,8 @@ import {
     passwordReset,
     refreshToken,
     userLogout,
-    fileUpload
+    fileUpload,
+    forgetPassword
 } from '../controller/auth.controller';
 import VerifyToken from '../middlewares/verifyToken.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -16,5 +17,6 @@ route.post('/logout', asyncHandler(userLogout));
 route.post('/reset-password', VerifyToken, asyncHandler(passwordReset));
 route.post('/refresh-token', activityLogs, asyncHandler(refreshToken));
 route.post('/file-upload', activityLogs, asyncHandler(fileUpload));
+route.post('/forget-password', asyncHandler(forgetPassword));
 
 export default route;

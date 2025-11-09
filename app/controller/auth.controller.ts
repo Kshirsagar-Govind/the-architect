@@ -3,8 +3,10 @@ import httpStatusCodes from 'http-status-codes';
 import User from '../models/user.model';
 import Session from '../models/session.model';
 import ErrorHandler from '../utils/errorHandler';
-import { verifyPassword, generateAuthToken, generateHash, decodeJWTToken } from '../utils/generateHash';
+import { verifyPassword, generateAuthToken, generateHash, decodeJWTToken, generateForgetPasswordToken } from '../utils/generateHash';
 import { sendMail } from '../services/email.service';
+import fs from 'fs';
+import path from 'path';
 
 export async function userLogin(req: Request, res: Response) {
     const { email, password } = req.body;
@@ -18,13 +20,6 @@ export async function userLogin(req: Request, res: Response) {
     let refresh_token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
     let newSession = new Session({ refresh_token, user_id: foundUser.id });
     await newSession.save();
-
-    await sendMail(
-        "manager.test.01@yopmail.com",
-        "govindkshgk@gmail.com",
-        "Login Attempt",
-        `<p>User with email manager.test.01@yopmail.com attempted to login.</p>`);
-
     return res.status(httpStatusCodes.OK).json({ message: 'Loggin Successful', token, refresh_token })
 }
 
@@ -76,6 +71,26 @@ export async function userLogout(req: Request, res: Response) {
     return res.status(httpStatusCodes.OK).json({ message: "Logged out." })
 }
 
+export async function forgetPassword(req: Request, res: Response) {
+    let { email } = req.body;
+    let user = await User.findOne({email});
+    if (!user) {
+        throw new ErrorHandler({ errorMessage: "User not found", statusCode: httpStatusCodes.NOT_FOUND });
+    }
+    let token = await generateForgetPasswordToken({id: user.id, email: user.email});
+    // Read the HTML template
+    const template = fs.readFileSync(path.join(__dirname,'../emailTemplates/forgetPassword.html'), 'utf8');
+        if (!template) {
+        throw new ErrorHandler({ errorMessage: "Template not found!", statusCode: httpStatusCodes.INTERNAL_SERVER_ERROR });
+    }
+    // Replace variables in template
+    const htmlContent = template
+        .replace(/{userName}/g, user.name || 'Dear')
+        .replace(/{resetLink}/g, `${process.env.FRONTEND_URL}/reset-password?token=${token}`);
+
+    await sendMail(email,'' ,'Reset Your Password', htmlContent);
+    return res.status(httpStatusCodes.OK).json({ message: "Password reset link sent to your email" });
+}
 // we will do it later
 export async function fileUpload(req: Request, res: Response) {
 

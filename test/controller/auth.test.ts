@@ -54,6 +54,14 @@ describe('AUTH API TEST CASES->\n', () => {
         expect(res.body).toHaveProperty('message');
     })
 
+    it('POST /api/auth/forget-password FORGET PASSWORD TEST', async () => {
+        const res = await request(app)
+            .post('/api/auth/forget-password')
+            .send({ email: newUser.email });
+        expect(res.status).toBe(httpStatusCodes.OK);
+        expect(res.body).toHaveProperty('message');
+    })
+
     // it('POST /api/auth/logout USER LOGOUT TEST', async () => {
     //     const res = await request(app)
     //         .post('/api/auth/logout')
