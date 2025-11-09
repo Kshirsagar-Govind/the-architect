@@ -9,17 +9,23 @@ import User, { IUser } from '../../app/models/user.model';
 import { generateAuthToken } from '../../app/utils/generateHash';
 import { disconnectDB } from '../../app/config/db';
 
-let fakeUser: { name: string; email: string; password: string };
+let fakeUser: { name: string; email: string; password: string; role: string };
 describe('- USER API TESTING ', () => {
+    let testUser: IUser;
     let existedUser: IUser;
     let updatedUserData: IUser;
     let deleteUserData: IUser;
+    let fakeUser: IUser;
+    let token = '';
     beforeAll(async () => {
-        fakeUser = {
+        testUser = new User({
             name: faker.name.fullName(),
             email: faker.internet.email(),
             password: faker.internet.password(),
-        };
+            role: 'member',
+        });
+        await testUser.hashPassword();
+        fakeUser = await testUser.save();
         for (let i = 0; i < 5; i++) {
             const newUser = new User({
                 name: faker.name.fullName(),
@@ -32,13 +38,19 @@ describe('- USER API TESTING ', () => {
             if (i == 3) updatedUserData = newUser;
             if (i == 4) deleteUserData = newUser;
         }
+        token = await generateAuthToken({ id: fakeUser.id, email: fakeUser.email })
 
-    },10000);
+    }, 10000);
 
     it('POST /api/user should create new user', async () => {
         const res = await request(app)
             .post('/api/user')
-            .send(fakeUser)
+            .send({
+                name: "New User",
+                email: "newUser@gmail.com",
+                password: "newPassword",
+                role: 'member',
+            })
         expect(res.status).toBe(StatusCodes.CREATED);
         expect(res.body).toHaveProperty("token");
     }, 7000);
@@ -51,7 +63,6 @@ describe('- USER API TESTING ', () => {
 
     it('PUT /api/user/:id should update user using id', async () => {
         let user = updatedUserData;
-        let token = await generateAuthToken({ id: "123qwe123", email: "test@gmail.com" })
         const res = await request(app)
             .put(`/api/user/${user.id}`)
             .send({ name: "updated name", email: "test@updated.com", password: "passord@updated" })
@@ -62,7 +73,6 @@ describe('- USER API TESTING ', () => {
 
     it('DELETE /api/user/:id should delete user using id', async () => {
         let user = deleteUserData;
-        let token = await generateAuthToken({ id: "123qwe123", email: "test@gmail.com" })
         const res = await request(app)
             .delete(`/api/user/${user.id}`)
             .set('Authorization', `Bearer ${token}`);
@@ -83,7 +93,6 @@ describe('- USER API TESTING ', () => {
     }, 7000);
 
     it('NEGATIVE DELETE /api/user/:id sending non existed id so should cant delete user', async () => {
-        let token = await generateAuthToken({ id: "123qwe123", email: "test@gmail.com" })
         const res = await request(app)
             .delete(`/api/user/43234234`)
             .set('Authorization', `Bearer ${token}`);

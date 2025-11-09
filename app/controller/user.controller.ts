@@ -6,7 +6,7 @@ import { generateAuthToken } from '../utils/generateHash';
 import Logger from '../utils/logger';
 
 export async function createNewUser(req: Request, res: Response) {
-  let { name, email, password } = req.body;
+  let { name, email, password, role } = req.body;
   let userExists = await User.findOne({ email });
   if (userExists) {
     throw new ErrorHandler({ statusCode: httpStatusCodes.CONFLICT, errorMessage: 'Account already exists' });
@@ -15,6 +15,7 @@ export async function createNewUser(req: Request, res: Response) {
     name,
     email,
     password,
+    role,
   });
   await addNewUser.hashPassword();
   await addNewUser.save();

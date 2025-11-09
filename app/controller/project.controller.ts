@@ -25,6 +25,9 @@ export async function getProject(req: Request, res: Response) {
 
 export async function createProject(req: Request, res: Response) {
     const { title, desc, owner } = req.body;
+    if (req.user?.role != 'admin') {
+        throw new ErrorHandler({ statusCode: httpStatusCodes.UNAUTHORIZED, errorMessage: "Only admin can delete the project, please request admin for project deletion" })
+    }
     const members = req.body.members;
     if (!title || !desc || !owner) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider complete detail' })
     let newProject = {
@@ -43,17 +46,20 @@ export async function updatedProject(req: Request, res: Response) {
     const { title, desc, owner, members } = req.body;
     const { id } = req.params;
     if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider id' })
-    let updated = await Project.findOneAndUpdate({ id }, { title, desc, owner, members },{new:true})
+    let updated = await Project.findOneAndUpdate({ id }, { title, desc, owner, members }, { new: true })
     return res
         .status(httpStatusCodes.OK)
-        .json({ message: 'Project Updated', data:updated });
+        .json({ message: 'Project Updated', data: updated });
 }
 
 export async function deleteProject(req: Request, res: Response) {
     const { id } = req.params;
+    if (req.user?.role != 'admin') {
+        throw new ErrorHandler({ statusCode: httpStatusCodes.UNAUTHORIZED, errorMessage: "Only admin can delete the project, please request admin for project deletion" })
+    }
     if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'Please provider id' })
     let deleted = await Project.deleteOne({ id });
-    if (deleted.deletedCount==0) throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'Project not deleted, invalid Project ID' })
+    if (deleted.deletedCount == 0) throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'Project not deleted, invalid Project ID' })
     return res
         .status(httpStatusCodes.OK)
         .json({ message: 'Project Deleted' });

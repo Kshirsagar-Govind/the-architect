@@ -9,7 +9,7 @@ declare module 'express-serve-static-core' {
     user?: IUser;
   }
 }
-export default function VerifyToken(
+export default async function VerifyToken(
   req: Request,
   res: Response,
   next: NextFunction
@@ -21,17 +21,26 @@ export default function VerifyToken(
         .status(httpStatusCodes.BAD_REQUEST)
         .json({ message: 'NO TOKEN' });
     }
-    
+
     let token = authorization.split(' ')[1];
     const secretKey = process.env.SECRET_KEY || 'your_secret_key';
-    jwt.verify(token, secretKey, (err: any, decoded: any) => {
+    jwt.verify(token, secretKey, async (err: any, decoded: any) => {
       if (err) {
         return res
           .status(httpStatusCodes.BAD_REQUEST)
           .json({ message: 'INVALLID TOKEN' });
       }
-      req.user = decoded;
-      next();
+      let userFound = await User.findOne({ id: decoded.id })
+      console.log({ decoded,userFound }, "opopopopop----------");
+      if (userFound) {
+        req.user = userFound;
+        next();
+      } else {
+        return res
+          .status(httpStatusCodes.BAD_REQUEST)
+          .json({ message: 'INVALLID TOKEN' });
+
+      }
     });
   } catch (err: any) {
     return res

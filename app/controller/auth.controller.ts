@@ -12,8 +12,6 @@ export async function userLogin(req: Request, res: Response) {
     if (!foundUser) {
         throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
     }
-    console.log(foundUser,'LOGIN TESTXXX');
-    
     const passwordCorrect = await verifyPassword(password, foundUser.password);
     if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
     let token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });

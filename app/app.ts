@@ -5,7 +5,6 @@ import authRoutes from './routes/auth.routes';
 import ErrorHandlerMiddleware from './middlewares/errorHandler.middleware';
 
 const app = express();
-
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
