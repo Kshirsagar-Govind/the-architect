@@ -4,11 +4,11 @@ import User from '../models/user.model';
 import Session from '../models/session.model';
 import ErrorHandler from '../utils/errorHandler';
 import { verifyPassword, generateAuthToken, generateHash, decodeJWTToken } from '../utils/generateHash';
+import { sendMail } from '../services/email.service';
 
 export async function userLogin(req: Request, res: Response) {
     const { email, password } = req.body;
     let foundUser = await User.findOne({ email });
-    
     if (!foundUser) {
         throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
     }
@@ -18,6 +18,13 @@ export async function userLogin(req: Request, res: Response) {
     let refresh_token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
     let newSession = new Session({ refresh_token, user_id: foundUser.id });
     await newSession.save();
+
+    await sendMail(
+        "manager.test.01@yopmail.com",
+        "govindkshgk@gmail.com",
+        "Login Attempt",
+        `<p>User with email manager.test.01@yopmail.com attempted to login.</p>`);
+
     return res.status(httpStatusCodes.OK).json({ message: 'Loggin Successful', token, refresh_token })
 }
 
@@ -25,9 +32,9 @@ export async function passwordReset(req: Request, res: Response) {
     const { oldPassword, newPassword } = req.body;
     const id = req.user?.id;
     //matching old and new password
-    
+
     if (oldPassword == newPassword) throw new ErrorHandler({ errorMessage: "Old passowrd can not be same as new password", statusCode: httpStatusCodes.BAD_REQUEST })
-        let foundUser = await User.findOne({ id });
+    let foundUser = await User.findOne({ id });
     if (!foundUser) {
         throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
     }
@@ -45,7 +52,7 @@ export async function passwordReset(req: Request, res: Response) {
 
 export async function refreshToken(req: Request, res: Response) {
     const { refresh_token } = req.body;
-    
+
     let decoded = await decodeJWTToken(refresh_token);
     let userFound = await User.findOne({ id: decoded.id });
     const foundRefreshToken = await Session.findOne({ refresh_token });
@@ -60,11 +67,16 @@ export async function refreshToken(req: Request, res: Response) {
     return res.status(httpStatusCodes.OK).json({
         token: newAccessToken,
         refresh_token: newRefreshToken,
-        message:"Token replaced"
+        message: "Token replaced"
     });
 }
 
 export async function userLogout(req: Request, res: Response) {
     await Session.deleteOne({ user_id: req.user?.id });
     return res.status(httpStatusCodes.OK).json({ message: "Logged out." })
+}
+
+// we will do it later
+export async function fileUpload(req: Request, res: Response) {
+
 }

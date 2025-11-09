@@ -3,15 +3,18 @@ import {
     userLogin,
     passwordReset,
     refreshToken,
-    userLogout
+    userLogout,
+    fileUpload
 } from '../controller/auth.controller';
 import VerifyToken from '../middlewares/verifyToken.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
+import { activityLogs } from '../middlewares/activityLog.middleware';
 let route = express.Router();
 
-route.post('/login', asyncHandler(userLogin));
+route.post('/login', activityLogs, asyncHandler(userLogin));
 route.post('/logout', asyncHandler(userLogout));
 route.post('/reset-password', VerifyToken, asyncHandler(passwordReset));
-route.post('/refresh-token', asyncHandler(refreshToken));
+route.post('/refresh-token', activityLogs, asyncHandler(refreshToken));
+route.post('/file-upload', activityLogs, asyncHandler(fileUpload));
 
 export default route;

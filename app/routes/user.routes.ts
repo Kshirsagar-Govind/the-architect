@@ -7,11 +7,12 @@ import {
 } from '../controller/user.controller';
 import VerifyToken from '../middlewares/verifyToken.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
+import { activityLogs } from '../middlewares/activityLog.middleware';
 let route = express.Router();
 
-route.get('/', asyncHandler(getUsers));
-route.post('/', asyncHandler(createNewUser));
-route.put('/:id', VerifyToken, asyncHandler(updateUser));
-route.delete('/:id', VerifyToken, asyncHandler(deleteUser));
+route.get('/', activityLogs, asyncHandler(getUsers));
+route.post('/', activityLogs, asyncHandler(createNewUser));
+route.put('/:id', VerifyToken, activityLogs, asyncHandler(updateUser));
+route.delete('/:id', VerifyToken, activityLogs, asyncHandler(deleteUser));
 
 export default route;

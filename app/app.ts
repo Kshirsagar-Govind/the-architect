@@ -3,6 +3,7 @@ import userRoutes from './routes/user.routes';
 import projectRoutes from './routes/project.routes';
 import authRoutes from './routes/auth.routes';
 import ErrorHandlerMiddleware from './middlewares/errorHandler.middleware';
+import { activityLogs } from './middlewares/activityLog.middleware';
 
 const app = express();
 app.use(express.json());

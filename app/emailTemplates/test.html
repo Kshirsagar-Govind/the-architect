@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Test Email</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        /* Basic resets for email clients */
+        body { margin:0; padding:0; background:#f2f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+        table { border-collapse:collapse; }
+        img { border:0; line-height:100%; outline:none; text-decoration:none; display:block; }
+        a { color:#3869D4; text-decoration:none; }
+        .container { width:100%; max-width:600px; margin:0 auto; }
+        .btn { background:#22aaff; color:#ffffff; padding:12px 20px; border-radius:4px; display:inline-block; }
+        @media only screen and (max-width:600px) {
+            .container { width:100% !important; }
+            .stack { display:block !important; width:100% !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Preheader text: shows in inbox preview, hide in body -->
+    <span style="display:none; font-size:1px; color:#f2f4f6; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+        {{preheader}}
+    </span>
+
+    <table role="presentation" width="100%" bgcolor="#f2f4f6" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center" style="padding:20px;">
+                <table role="presentation" class="container" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="border-radius:6px; overflow:hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding:20px; text-align:center; background:#ffffff;">
+                            <!-- Replace src with your logo path or remove img -->
+                            <img src="https://via.placeholder.com/120x40?text=Logo" alt="Logo" width="120" style="margin:0 auto;">
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:24px; font-family:Arial, Helvetica, sans-serif; color:#333333;">
+                            <h1 style="margin:0 0 12px; font-size:20px; font-weight:600;">Hello {{name}},</h1>
+                            <p style="margin:0 0 16px; font-size:15px; line-height:1.5;">
+                                {{content}}
+                            </p>
+
+                            <!-- Optional CTA -->
+                            <p style="margin:18px 0;">
+                                <a href="{{cta_url}}" class="btn" style="background:#22aaff; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:4px;">{{cta_text}}</a>
+                            </p>
+
+                            <hr style="border:none; border-top:1px solid #e9ecef; margin:18px 0;">
+
+                            <p style="margin:0; font-size:13px; color:#6b7280;">If you didn't expect this email, you can ignore it or <a href="{{support_url}}">contact support</a>.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:16px; text-align:center; font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#9aa0a6; background:#fafafa;">
+                            <p style="margin:0 0 6px;">Your Company • 123 Example St • City</p>
+                            <p style="margin:0;">
+                                <a href="{{unsubscribe_url}}" style="color:#9aa0a6; text-decoration:underline;">Unsubscribe</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Mobile spacer -->
+                <div style="height:20px; line-height:20px; font-size:1px;">&nbsp;</div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

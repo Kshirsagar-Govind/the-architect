@@ -31,7 +31,6 @@ export default async function VerifyToken(
           .json({ message: 'INVALLID TOKEN' });
       }
       let userFound = await User.findOne({ id: decoded.id })
-      console.log({ decoded,userFound }, "opopopopop----------");
       if (userFound) {
         req.user = userFound;
         next();
