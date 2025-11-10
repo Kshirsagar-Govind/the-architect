@@ -21,7 +21,7 @@ async function startServer() {
     }
   } catch (error) {
     console.error('❌ Server startup failed:', error);
-    process.exit(1);
+    // process.exit(1);
   }
 }
 

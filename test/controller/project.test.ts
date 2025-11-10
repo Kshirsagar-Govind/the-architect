@@ -14,7 +14,7 @@ let newProject: {
     id: string,
     title: string,
     desc: string,
-    owner: string,
+    manager: string,
     members: Array<string>
 };
 
@@ -31,7 +31,7 @@ describe('PROJECT API TEST CASES->\n', () => {
             id: generateProjectId(),
             title: faker.vehicle.vehicle(),
             desc: faker.lorem.paragraph(2),
-            owner: faker.vehicle.manufacturer(),
+            manager: faker.vehicle.manufacturer(),
             members: (faker.lorem.words(3)).split(' '),
         }
         managerUser = new UserModel({
@@ -56,7 +56,7 @@ describe('PROJECT API TEST CASES->\n', () => {
             let newProject = new Project({
                 title: faker.vehicle.vehicle(),
                 desc: faker.vehicle.manufacturer(),
-                owner: faker.vehicle.manufacturer(),
+                manager: faker.vehicle.manufacturer(),
                 members: (faker.lorem.words(3)).split(' '),
             })
             await newProject.save();
@@ -121,6 +121,18 @@ describe('PROJECT API TEST CASES->\n', () => {
         expect(res.status).toBe(StatusCodes.NOT_FOUND);
         expect(res.body).toHaveProperty('message')
     }, 5000);
+
+    it('PUT /api/project/:id assign a project manager/manager', async () => {
+        let project = updatedProjectData
+        const res = await request(app)
+            .put(`/api/project/${project.id}`)
+            .send({ manager: "ProjectManager" })
+            .set('Authorization', `Bearer ${adminToken}`)
+        expect(res.status).toBe(StatusCodes.OK);
+        expect(res.body).toHaveProperty('message')
+    }, 5000);
+
+
     afterAll(() => {
         disconnectDB()
     })

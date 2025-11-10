@@ -88,7 +88,7 @@ export async function forgetPassword(req: Request, res: Response) {
         .replace(/{userName}/g, user.name || 'Dear')
         .replace(/{resetLink}/g, `${process.env.FRONTEND_URL}/reset-password?token=${token}`);
 
-    await sendMail(email,'' ,'Reset Your Password', htmlContent);
+    // await sendMail(email,'' ,'Reset Your Password', htmlContent);
     return res.status(httpStatusCodes.OK).json({ message: "Password reset link sent to your email" });
 }
 // we will do it later

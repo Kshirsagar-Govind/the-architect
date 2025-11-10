@@ -24,16 +24,16 @@ export async function getProject(req: Request, res: Response) {
 }
 
 export async function createProject(req: Request, res: Response) {
-    const { title, desc, owner } = req.body;
+    const { title, desc, manager } = req.body;
     if (req.user?.role != 'admin') {
         throw new ErrorHandler({ statusCode: httpStatusCodes.UNAUTHORIZED, errorMessage: "Only admin can delete the project, please request admin for project deletion" })
     }
     const members = req.body.members;
-    if (!title || !desc || !owner) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider complete detail' })
+    if (!title || !desc || !manager) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider complete detail' })
     let newProject = {
         desc,
         members,
-        owner,
+        manager,
         title,
     };
     await Project.create(newProject);
@@ -43,10 +43,10 @@ export async function createProject(req: Request, res: Response) {
 }
 
 export async function updatedProject(req: Request, res: Response) {
-    const { title, desc, owner, members } = req.body;
+    const { title, desc, manager, members } = req.body;
     const { id } = req.params;
     if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider id' })
-    let updated = await Project.findOneAndUpdate({ id }, { title, desc, owner, members }, { new: true })
+    let updated = await Project.findOneAndUpdate({ id }, { title, desc, manager, members }, { new: true })
     return res
         .status(httpStatusCodes.OK)
         .json({ message: 'Project Updated', data: updated });
@@ -63,4 +63,17 @@ export async function deleteProject(req: Request, res: Response) {
     return res
         .status(httpStatusCodes.OK)
         .json({ message: 'Project Deleted' });
+}
+
+export async function assignManager(req: Request, res: Response) {
+    if (req.user?.role != 'admin') {
+        throw new ErrorHandler({ statusCode: httpStatusCodes.UNAUTHORIZED, errorMessage: "Only admin can delete the project, please request admin for project deletion" })
+    }
+    const { manager } = req.body;
+    const { id } = req.params;
+    if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider id' })
+    let updated = await Project.findOneAndUpdate({ id }, { manager }, { new: true })
+    return res
+        .status(httpStatusCodes.OK)
+        .json({ message: 'Project manager assigned', data: updated });
 }
