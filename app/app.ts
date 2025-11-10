@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import userRoutes from './routes/user.routes';
 import projectRoutes from './routes/project.routes';
 import authRoutes from './routes/auth.routes';
+import clientRoutes from './routes/client.routes';
+import taskRoutes from './routes/task.routes';
 import ErrorHandlerMiddleware from './middlewares/errorHandler.middleware';
 import { activityLogs } from './middlewares/activityLog.middleware';
 
@@ -15,6 +17,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/project', projectRoutes);
+app.use('/api/client', clientRoutes);
+app.use('/api/project/:id', taskRoutes);
 
 app.use(ErrorHandlerMiddleware);
 

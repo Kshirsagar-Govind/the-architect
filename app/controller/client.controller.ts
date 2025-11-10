@@ -4,8 +4,26 @@ import ErrorHandler from '../utils/errorHandler';
 import httpStatusCode from 'http-status-codes';
 
 export const getClients = async (req: Request, res: Response) => {
-    const clients = await ClientModel.find();
-    res.status(200).json({ success: true, data: clients });
+    const email = String(req.query.email || '');
+    const name = String(req.query.name || '');
+    const company = String(req.query.company || '');
+    let data = [];
+    if (email) {
+        data = await ClientModel.find({
+            email: { $regex: email, $options: 'i' } // 'i' → case-insensitive
+        });
+    }
+    else if (company) {
+        data = await ClientModel.find({
+            company: { $regex: company, $options: 'i' } // 'i' → case-insensitive
+        });
+    }
+    else if (name) {
+        data = await ClientModel.find({
+            name: { $regex: name, $options: 'i' } // 'i' → case-insensitive
+        });
+    } else data = await ClientModel.find();
+    res.status(200).json({ success: true, data });
 };
 
 export const getClientById = async (req: Request, res: Response) => {

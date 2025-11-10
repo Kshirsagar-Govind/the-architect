@@ -10,12 +10,13 @@ import { generateAuthToken } from "../../app/utils/generateHash"
 import { generateProjectId } from "../../app/utils/generateID"
 import { disconnectDB } from "../../app/config/db"
 import UserModel, { IUser } from "../../app/models/user.model"
+import mongoose from "mongoose"
 let newProject: {
     id: string,
     title: string,
     desc: string,
-    manager: string,
-    members: Array<string>
+    manager: mongoose.Types.ObjectId,
+    members: [mongoose.Types.ObjectId]
 };
 
 describe('PROJECT API TEST CASES->\n', () => {
@@ -26,13 +27,14 @@ describe('PROJECT API TEST CASES->\n', () => {
     let updatedProjectData: IProject;
     let managerToken = '';
     let adminToken = '';
+
     beforeAll(async () => {
         newProject = {
             id: generateProjectId(),
             title: faker.vehicle.vehicle(),
             desc: faker.lorem.paragraph(2),
-            manager: faker.vehicle.manufacturer(),
-            members: (faker.lorem.words(3)).split(' '),
+            manager: new mongoose.Types.ObjectId(),
+            members: [new mongoose.Types.ObjectId()],
         }
         managerUser = new UserModel({
             name: 'manager manager',
@@ -56,17 +58,17 @@ describe('PROJECT API TEST CASES->\n', () => {
             let newProject = new Project({
                 title: faker.vehicle.vehicle(),
                 desc: faker.vehicle.manufacturer(),
-                manager: faker.vehicle.manufacturer(),
-                members: (faker.lorem.words(3)).split(' '),
+                manager: new mongoose.Types.ObjectId(),
+                members: [new mongoose.Types.ObjectId()],
             })
             await newProject.save();
             if (i == 3) deleteProject = newProject;
             if (i == 4) updatedProjectData = newProject;
         }
-        
-        
+
+
         managerToken = await generateAuthToken({ id: manager.id, email: manager.email });
-        adminToken= await generateAuthToken({ id: admin.id, email: admin.email });
+        adminToken = await generateAuthToken({ id: admin.id, email: admin.email });
     }, 5000);
 
     it('GET /project/ <- get all projects', async () => {
