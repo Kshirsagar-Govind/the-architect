@@ -38,8 +38,6 @@ describe('PROJECT API TEST CASES->\n', () => {
             manager: new mongoose.Types.ObjectId(),
             members: [new mongoose.Types.ObjectId()],
         }
-        console.log(newProject,'=newProject=');
-        
         managerUser = new UserModel({
             name: 'manager manager',
             email: 'manager@gmail.com',
@@ -69,8 +67,6 @@ describe('PROJECT API TEST CASES->\n', () => {
             await newProject.save();
             if (i == 3) deleteProject = newProject;
             if (i == 4) {
-                console.log(newProject._id?.toString(), '=====last project id');
-                
                 updatedProjectData._id = newProject._id?.toString();
                 updatedProjectData.title = newProject.title
                 updatedProjectData.desc = newProject.desc
