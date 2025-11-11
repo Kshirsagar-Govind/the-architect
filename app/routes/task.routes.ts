@@ -11,11 +11,11 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { activityLogs } from '../middlewares/activityLog.middleware';
 let route = express.Router();
 
-route.get('/tasks', activityLogs, asyncHandler(getTasks));
-route.post('/task', VerifyToken, activityLogs, asyncHandler(createTask));
-route.put('/task/:id', VerifyToken, activityLogs, asyncHandler(updateTask));
-route.put('/assign-task', VerifyToken, activityLogs, asyncHandler(assignTask));
-route.post('/task/:id/upload-art', VerifyToken, activityLogs, asyncHandler(uploadArt));
+route.get('/:projectId', activityLogs, asyncHandler(getTasks));
+route.post('/:projectId/', VerifyToken, activityLogs, asyncHandler(createTask));
+route.put('/:taskId', VerifyToken, activityLogs, asyncHandler(updateTask));
+route.put('/assign/:taskId', VerifyToken, activityLogs, asyncHandler(assignTask));
+route.post('/:taskId/art', VerifyToken, activityLogs, asyncHandler(uploadArt));
 
 
 export default route;

@@ -24,7 +24,8 @@ export async function getProject(req: Request, res: Response) {
 }
 
 export async function createProject(req: Request, res: Response) {
-    const { title, desc, manager } = req.body;
+    const { title, desc, manager, client } = req.body;
+
     if (req.user?.role != 'admin') {
         throw new ErrorHandler({ statusCode: httpStatusCodes.UNAUTHORIZED, errorMessage: "Only admin can delete the project, please request admin for project deletion" })
     }
@@ -33,6 +34,7 @@ export async function createProject(req: Request, res: Response) {
     let newProject = {
         desc,
         members,
+        client,
         manager,
         title,
     };
@@ -43,10 +45,10 @@ export async function createProject(req: Request, res: Response) {
 }
 
 export async function updatedProject(req: Request, res: Response) {
-    const { title, desc, manager, members } = req.body;
+    const { title, desc, manager, members, client } = req.body;
     const { id } = req.params;
     if (!id) throw new ErrorHandler({ statusCode: httpStatusCodes.BAD_REQUEST, errorMessage: 'Please provider id' })
-    let updated = await Project.findOneAndUpdate({ id }, { title, desc, manager, members }, { new: true })
+    let updated = await Project.findByIdAndUpdate({_id:id} , { title, desc, manager, members, client }, { new: true })
     return res
         .status(httpStatusCodes.OK)
         .json({ message: 'Project Updated', data: updated });

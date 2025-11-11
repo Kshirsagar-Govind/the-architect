@@ -44,15 +44,17 @@ export async function getTasks(req: Request, res: Response) {
 }
 export async function createTask(req: Request, res: Response) {
     let {
-        projectId,
         owner,
         title,
         dueDate
     } = req.body;
+    const {projectId} = req.params;
+    
     if (!projectId || !owner || !title || !owner || !dueDate) {
         throw new ErrorHandler({ statusCode: httpStatusCode.BAD_REQUEST, errorMessage: 'Provide all details to create a task' })
     }
-    let created = await TaskModel.create(req.body);
+    let newTask = {...req.body, projectId};
+    let created = await TaskModel.create(newTask);
     if (!created) {
         throw new ErrorHandler({ statusCode: httpStatusCode.INTERNAL_SERVER_ERROR, errorMessage: 'Something went wrong' })
     }
@@ -60,32 +62,41 @@ export async function createTask(req: Request, res: Response) {
 }
 export async function updateTask(req: Request, res: Response) {
     let {
-        taskId, owner, title, desc, type, priority, feedback, attachement, status, dueDate
+        owner, title, desc, type, priority, feedback, attachement, status, dueDate
     } = req.body;
-    const { id } = req.params;
-
-    await TaskModel.updateOne({
-        id
+    const { taskId } = req.params;
+    
+    let updated = await TaskModel.findByIdAndUpdate({
+        _id:taskId
     }, {
         taskId, owner, title, desc, type, priority, feedback, attachement, status, dueDate
-    })
+    });
+    return res.status(httpStatusCode.OK).json({ message: "Task updated" })
+
 }
+
+export async function assignTask(req: Request, res: Response) {
+    let { owner } = req.body;
+    const { taskId } = req.params;
+
+    await TaskModel.findByIdAndUpdate({ _id:taskId }, { owner })
+    return res.status(httpStatusCode.OK).json({ message: "Task owner assigned" })
+
+}
+
 export async function updateTaskStatus(req: Request, res: Response) {
     let { status } = req.body;
     const { id } = req.params;
     await TaskModel.updateOne({ id }, { status })
 }
+
 export async function updateTaskPriority(req: Request, res: Response) {
     let { priority } = req.body;
     const { id } = req.params;
     await TaskModel.updateOne({ id }, { priority })
 }
 
-export async function assignTask(req: Request, res: Response) {
-    let { owner } = req.body;
-    const { id } = req.params;
-    await TaskModel.updateOne({ id }, { owner })
-}
+
 
 export const uploadArt = async (req: Request, res: Response) => {
     const { id } = req.params;

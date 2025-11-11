@@ -18,7 +18,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/project', projectRoutes);
 app.use('/api/client', clientRoutes);
-app.use('/api/project/:id', taskRoutes);
+app.use('/api/task/', taskRoutes);
 
 app.use(ErrorHandlerMiddleware);
 

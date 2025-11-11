@@ -15,6 +15,7 @@ let newProject: {
     id: string,
     title: string,
     desc: string,
+    client: mongoose.Types.ObjectId,
     manager: mongoose.Types.ObjectId,
     members: [mongoose.Types.ObjectId]
 };
@@ -24,7 +25,7 @@ describe('PROJECT API TEST CASES->\n', () => {
     let adminUser: IUser;
 
     let deleteProject: IProject;
-    let updatedProjectData: IProject;
+    let updatedProjectData: IProject= {} as IProject;
     let managerToken = '';
     let adminToken = '';
 
@@ -33,9 +34,12 @@ describe('PROJECT API TEST CASES->\n', () => {
             id: generateProjectId(),
             title: faker.vehicle.vehicle(),
             desc: faker.lorem.paragraph(2),
+            client: new mongoose.Types.ObjectId(),
             manager: new mongoose.Types.ObjectId(),
             members: [new mongoose.Types.ObjectId()],
         }
+        console.log(newProject,'=newProject=');
+        
         managerUser = new UserModel({
             name: 'manager manager',
             email: 'manager@gmail.com',
@@ -58,12 +62,23 @@ describe('PROJECT API TEST CASES->\n', () => {
             let newProject = new Project({
                 title: faker.vehicle.vehicle(),
                 desc: faker.vehicle.manufacturer(),
+                client: new mongoose.Types.ObjectId(),
                 manager: new mongoose.Types.ObjectId(),
                 members: [new mongoose.Types.ObjectId()],
             })
             await newProject.save();
             if (i == 3) deleteProject = newProject;
-            if (i == 4) updatedProjectData = newProject;
+            if (i == 4) {
+                console.log(newProject._id?.toString(), '=====last project id');
+                
+                updatedProjectData._id = newProject._id?.toString();
+                updatedProjectData.title = newProject.title
+                updatedProjectData.desc = newProject.desc
+                updatedProjectData.client = newProject.client
+                updatedProjectData.manager = newProject.manager
+                updatedProjectData.members = newProject.members
+            
+            };
         }
 
 
@@ -88,10 +103,9 @@ describe('PROJECT API TEST CASES->\n', () => {
     }, 20000)
 
     it('PUT /api/project/:id should update project using id', async () => {
-        let project = updatedProjectData
         const res = await request(app)
-            .put(`/api/project/${project.id}`)
-            .send({ ...project, title: "updated title", desc: "updated desc" })
+            .put(`/api/project/${updatedProjectData._id}`)
+            .send({ ...updatedProjectData, title: "updated title", desc: "updated desc" })
             .set('Authorization', `Bearer ${managerToken}`)
         expect(res.status).toBe(StatusCodes.OK);
         expect(res.body).toHaveProperty('message')
@@ -125,10 +139,9 @@ describe('PROJECT API TEST CASES->\n', () => {
     }, 5000);
 
     it('PUT /api/project/:id assign a project manager/manager', async () => {
-        let project = updatedProjectData
         const res = await request(app)
-            .put(`/api/project/${project.id}`)
-            .send({ manager: "ProjectManager" })
+            .put(`/api/project/${updatedProjectData._id}`)
+            .send({ manager: managerUser._id?.toString() })
             .set('Authorization', `Bearer ${adminToken}`)
         expect(res.status).toBe(StatusCodes.OK);
         expect(res.body).toHaveProperty('message')

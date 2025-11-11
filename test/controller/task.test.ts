@@ -6,13 +6,26 @@ import mongoose from "mongoose";
 import httpStatusCode from "http-status-codes";
 import { generateAuthToken } from "../../app/utils/generateHash";
 import { faker } from "@faker-js/faker";
+import ProjectModel, { IProject } from "../../app/models/project.model";
+import UserModel from "../../app/models/user.model";
 
 describe('PROJECT TASK API TESTING', () => {
     let token = '';
-    let projectId = new mongoose.Types.ObjectId();
+    let projectId= '';
+    let taskId= '';
     let newTask: ITask;
     let createdTask: ITask | null = null;
+    let newProject: IProject
     beforeAll(async () => {
+        newProject = new ProjectModel({
+            title: faker.vehicle.vehicle(),
+            desc: faker.vehicle.manufacturer(),
+            client: new mongoose.Types.ObjectId(),
+            manager: new mongoose.Types.ObjectId(),
+            members: [new mongoose.Types.ObjectId()],
+        })
+        await newProject.save();
+        projectId = newProject._id?.toString() || '';
         newTask = new TaskModel({
             id: generateRowId(),
             projectId: projectId,
@@ -25,22 +38,32 @@ describe('PROJECT TASK API TESTING', () => {
             dueDate: new Date(),
             status: 'assigned'
         });
+        //
         createdTask = await newTask.save();
-        token = await generateAuthToken({ id: generateUserId(), email: faker.internet.email })
+        taskId = createdTask._id?.toString() || '';
+        let testUser = new UserModel({
+            name: faker.name.fullName(),
+            email: faker.internet.email(),
+            password: faker.internet.password(),
+            role: 'member',
+        });
+        await testUser.hashPassword();
+        let fakeUser = await testUser.save();
+        token = await generateAuthToken({ id: fakeUser.id, email: fakeUser.email })
     }, 10000)
 
-    it('GET /api/project/task fetch all tasks using project id', async () => {
+    it('GET /api/task/:projectId fetch all tasks using project id', async () => {
+        let url = `/api/task/${projectId}`
         const res = await request(app)
-            .get(`/api/project/${projectId}/tasks`)
+            .get(url)
             .set('Authorization', `Bearer ${token}`)
         expect(res.status).toBe(httpStatusCode.OK);
     })
 
-    it('POST /api/project/:id/task create new project task', async () => {
+    it('POST /api/task/:projectId create new project task', async () => {
         const res = await request(app)
-            .get(`/api/project/${projectId}/task`)
+            .post(`/api/task/${projectId}`)
             .send({
-                projectId: newTask.projectId,
                 owner: newTask.owner,
                 title: newTask.title,
                 dueDate: newTask.dueDate
@@ -49,11 +72,10 @@ describe('PROJECT TASK API TESTING', () => {
         expect(res.status).toBe(httpStatusCode.CREATED);
     })
 
-    it('PUT /api/project/:id/task/:id update project task', async () => {
+    it('PUT /api/task/:taskId update project task', async () => {
         const res = await request(app)
-            .get(`/api/project/${projectId}/task`)
+            .put(`/api/task/${taskId}`)
             .send({
-                projectId: newTask.projectId,
                 owner: newTask.owner,
                 title: 'Updated test',
                 dueDate: new Date('01/01/2027')
@@ -62,11 +84,11 @@ describe('PROJECT TASK API TESTING', () => {
         expect(res.status).toBe(httpStatusCode.OK);
     })
 
-    it('PUT /api/project/:id/assign-task assign task to a member', async () => {
+    it('PUT /api/task/:taskId/assign assign task to a member', async () => {
         const res = await request(app)
-            .get(`/api/project/${projectId}/assign-task`)
+            .put(`/api/task/assign/${taskId}`)
             .send({
-                owner: new mongoose.Types.ObjectId()
+                owner: new mongoose.Types.ObjectId()?.toString() || ''
             })
             .set('Authorization', `Bearer ${token}`)
         expect(res.status).toBe(httpStatusCode.OK);

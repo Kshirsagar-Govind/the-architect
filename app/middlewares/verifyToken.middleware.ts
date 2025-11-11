@@ -30,6 +30,8 @@ export default async function VerifyToken(
           .status(httpStatusCodes.BAD_REQUEST)
           .json({ message: 'INVALLID TOKEN' });
       }
+      console.log(decoded,'=============================');
+      
       let userFound = await User.findOne({ id: decoded.id })
       if (userFound) {
         req.user = userFound;

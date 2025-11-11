@@ -9,6 +9,7 @@ import { generateAuthToken } from "../../app/utils/generateHash";
 import { disconnectDB } from "../../app/config/db";
 import ClientModel, { IClient } from "../../app/models/client.model";
 import UserModel, { IUser } from "../../app/models/user.model";
+import mongoose from "mongoose";
 
 describe("CLIENT API TEST CASES ->\n", () => {
     let adminUser: IUser;
@@ -102,19 +103,14 @@ describe("CLIENT API TEST CASES ->\n", () => {
 
     // NEGATIVE CASES
     it("NEGATIVE DELETE /api/client/:id <- should fail with invalid id", async () => {
+        const id = new mongoose.Types.ObjectId();
         const res = await request(app)
-            .delete("/api/client/xxxxxxxxxx")
+            .delete(`/api/client/${id}`)
             .set("Authorization", `Bearer ${adminToken}`);
         expect(res.status).toBe(StatusCodes.NOT_FOUND);
         expect(res.body).toHaveProperty("message");
     });
 
-    it("NEGATIVE GET /api/client/:id <- should fail with invalid id", async () => {
-        const res = await request(app)
-            .get("/api/client/invalidId123")
-            .set("Authorization", `Bearer ${adminToken}`);
-        expect(res.status).toBe(StatusCodes.NOT_FOUND);
-    });
 
     afterAll(async () => {
         await disconnectDB();

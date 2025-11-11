@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import ClientModel from '../models/client.model';
 import ErrorHandler from '../utils/errorHandler';
 import httpStatusCode from 'http-status-codes';
+import mongoose from 'mongoose';
 
 export const getClients = async (req: Request, res: Response) => {
     const email = String(req.query.email || '');
@@ -51,6 +52,9 @@ export const updateClient = async (req: Request, res: Response) => {
 
 export const deleteClient = async (req: Request, res: Response) => {
     const { id } = req.params;
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        throw new ErrorHandler({ statusCode: httpStatusCode.BAD_REQUEST, errorMessage: 'Invalid client ID' })
+    }
     const deleted = await ClientModel.findByIdAndDelete(id);
     if (!deleted) {
         throw new ErrorHandler({ statusCode: httpStatusCode.NOT_FOUND, errorMessage: 'Client not found' })
