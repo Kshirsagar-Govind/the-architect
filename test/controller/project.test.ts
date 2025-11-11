@@ -144,7 +144,7 @@ describe('PROJECT API TEST CASES->\n', () => {
     }, 5000);
 
 
-    afterAll(() => {
-        disconnectDB()
+    afterAll(async() => {
+        await disconnectDB()
     })
 })
