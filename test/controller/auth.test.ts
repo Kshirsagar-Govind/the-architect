@@ -71,7 +71,7 @@ describe('AUTH API TEST CASES->\n', () => {
     //     expect(res.status).toBe(httpStatusCodes.OK);
     //     expect(res.body).toHaveProperty('message');
     // })
-    afterAll(() => {
-        disconnectDB()
+    afterAll(async() => {
+        await disconnectDB()
     })
 })

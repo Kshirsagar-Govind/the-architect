@@ -8,11 +8,12 @@ import { generateAuthToken } from "../../app/utils/generateHash";
 import { faker } from "@faker-js/faker";
 import ProjectModel, { IProject } from "../../app/models/project.model";
 import UserModel from "../../app/models/user.model";
+import { disconnectDB } from "../../app/config/db";
 
 describe('PROJECT TASK API TESTING', () => {
     let token = '';
-    let projectId= '';
-    let taskId= '';
+    let projectId = '';
+    let taskId = '';
     let newTask: ITask;
     let createdTask: ITask | null = null;
     let newProject: IProject
@@ -94,5 +95,7 @@ describe('PROJECT TASK API TESTING', () => {
         expect(res.status).toBe(httpStatusCode.OK);
     })
 
-    afterAll(() => { })
+    afterAll(async () => {
+        await disconnectDB()
+    })
 })

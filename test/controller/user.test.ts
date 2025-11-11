@@ -101,7 +101,7 @@ describe('- USER API TESTING ', () => {
 
     afterAll(async () => {
         await User.deleteMany();
-        disconnectDB()
+        await disconnectDB()
     });
 });
 
