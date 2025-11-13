@@ -5,6 +5,7 @@ export interface IProject extends Document {
   id: string;
   title: string;
   desc: string;
+  projectType:string,
   client: mongoose.Types.ObjectId;   
   manager: mongoose.Types.ObjectId;   
   members: mongoose.Types.ObjectId[];  
@@ -14,6 +15,11 @@ const ProjectSchema: Schema<IProject> = new mongoose.Schema({
   id: { type: String, default: generateProjectId },
   title: { type: String, required: true },
   desc: { type: String, default: '' },
+  projectType: {
+  type: String,
+  enum: ["web", "mobile", "product"],
+  required: true,
+},
   client: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
   manager: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
   members: [{ type: Schema.Types.ObjectId, ref: 'Users', default: [] }],
