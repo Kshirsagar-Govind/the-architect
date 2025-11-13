@@ -16,9 +16,16 @@ let newProject: {
   id: string;
   title: string;
   desc: string;
+  projectType: string;
   client: mongoose.Types.ObjectId;
   manager: mongoose.Types.ObjectId;
-  members: [mongoose.Types.ObjectId];
+  members: mongoose.Types.ObjectId[];
+  appFile: {
+    name: string;
+    url: string;
+    size: number;
+    uploadedAt: Date;
+  };
 };
 
 describe("PROJECT API TEST CASES ->\n", () => {
@@ -35,9 +42,16 @@ describe("PROJECT API TEST CASES ->\n", () => {
       id: generateProjectId(),
       title: faker.vehicle.vehicle(),
       desc: faker.lorem.paragraph(2),
+      projectType: "web",
       client: new mongoose.Types.ObjectId(),
       manager: new mongoose.Types.ObjectId(),
       members: [new mongoose.Types.ObjectId()],
+      appFile: {
+        name: "build.zip",
+        url: faker.internet.url(),
+        size: 12345,
+        uploadedAt: new Date(),
+      },
     };
 
     managerUser = new UserModel({
@@ -63,9 +77,16 @@ describe("PROJECT API TEST CASES ->\n", () => {
       const newProj = new Project({
         title: faker.vehicle.vehicle(),
         desc: faker.vehicle.manufacturer(),
+        projectType: "web",
         client: new mongoose.Types.ObjectId(),
         manager: new mongoose.Types.ObjectId(),
         members: [new mongoose.Types.ObjectId()],
+        appFile: {
+          name: "mock.apk",
+          url: faker.internet.url(),
+          size: 2048,
+          uploadedAt: new Date(),
+        },
       });
       await newProj.save();
 
@@ -74,9 +95,11 @@ describe("PROJECT API TEST CASES ->\n", () => {
         updatedProjectData._id = newProj._id?.toString();
         updatedProjectData.title = newProj.title;
         updatedProjectData.desc = newProj.desc;
+        updatedProjectData.projectType = newProj.projectType;
         updatedProjectData.client = newProj.client;
         updatedProjectData.manager = newProj.manager;
         updatedProjectData.members = newProj.members;
+        updatedProjectData.appFile = newProj.appFile;
       }
     }
 
@@ -84,10 +107,7 @@ describe("PROJECT API TEST CASES ->\n", () => {
       id: manager.id,
       email: manager.email,
     });
-    adminToken = await generateAuthToken({
-      id: admin.id,
-      email: admin.email,
-    });
+    adminToken = await generateAuthToken({ id: admin.id,email: admin.email});
   }, 10000);
 
   it("GET /project/ <- get all projects", async () => {
@@ -96,7 +116,7 @@ describe("PROJECT API TEST CASES ->\n", () => {
     expect(res.body).toHaveProperty("data");
   }, 20000);
 
-  it("POST /project/ <- add new project (admin only)", async () => {
+  it("POST /api/project/ <- add new project (admin only)", async () => {
     const res = await request(app)
       .post("/api/project")
       .send(newProject)
@@ -121,7 +141,7 @@ describe("PROJECT API TEST CASES ->\n", () => {
   it("DELETE /api/project/:id <- should fail (non-admin unauthorized)", async () => {
     const project = deleteProject;
     const res = await request(app)
-      .delete(`/api/project/${project._id}`) // ✅ changed to _id
+      .delete(`/api/project/${project._id}`)
       .set("Authorization", `Bearer ${managerToken}`);
     expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
     expect(res.body).toHaveProperty("message");
@@ -130,14 +150,14 @@ describe("PROJECT API TEST CASES ->\n", () => {
   it("DELETE /api/project/:id <- should delete (admin only)", async () => {
     const project = deleteProject;
     const res = await request(app)
-      .delete(`/api/project/${project._id}`) // ✅ changed to _id
+      .delete(`/api/project/${project._id}`)
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(StatusCodes.OK);
     expect(res.body).toHaveProperty("message");
   }, 10000);
 
   it("NEGATIVE DELETE /api/project/:id <- invalid _id should return NOT_FOUND", async () => {
-    const invalidId = new mongoose.Types.ObjectId(); // ✅ proper ObjectId format
+    const invalidId = new mongoose.Types.ObjectId();
     const res = await request(app)
       .delete(`/api/project/${invalidId}`)
       .set("Authorization", `Bearer ${adminToken}`);

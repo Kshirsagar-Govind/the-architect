@@ -35,13 +35,14 @@ const ProjectSchema: Schema<IProject> = new mongoose.Schema({
     name: { type: String },
     url: { type: String },
     size: { type: Number },
-    uploadedAt: { type: Date, default: Date.now }
+    uploadedAt: { type: Date, default: Date.now },
+    default: {},
   }
 },
   {
     timestamps: true
   }
 )
-ProjectSchema.path('appFile').default({});
+// ProjectSchema.path('appFile').default({});
 const ProjectModel: Model<IProject> = mongoose.model<IProject>('Projects', ProjectSchema);
 export default ProjectModel;

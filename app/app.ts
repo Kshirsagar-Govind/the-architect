@@ -3,7 +3,7 @@ import userRoutes from './routes/user.routes';
 import projectRoutes from './routes/project.routes';
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/client.routes';
-import taskRoutes from './routes/task.routes';
+import vulnerabilityRoutes from './routes/vulnerabilities.routes';
 import ErrorHandlerMiddleware from './middlewares/errorHandler.middleware';
 import { activityLogs } from './middlewares/activityLog.middleware';
 
@@ -18,7 +18,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/project', projectRoutes);
 app.use('/api/client', clientRoutes);
-app.use('/api/task/', taskRoutes);
+app.use('/api/vulnerability/', vulnerabilityRoutes);
 
 app.use(ErrorHandlerMiddleware);
 
