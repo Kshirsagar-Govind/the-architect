@@ -8,8 +8,8 @@ const router = express.Router();
 router.get('/:projectId', asyncHandler(getVulnerabilities));
 router.post('/:projectId', validateBody(vulnerabilitySchema), asyncHandler(createVulnerability));
 router.put('/:id', asyncHandler(updateVulnerability));
-router.put('/:id/update-severity', asyncHandler(updateVulnerabilitySeverity));
-router.put('/:id/update-status', asyncHandler(updateVulnerabilityStatus));
+router.patch('/:id/update-severity', asyncHandler(updateVulnerabilitySeverity));
+router.patch('/:id/update-status', asyncHandler(updateVulnerabilityStatus));
 router.delete('/:id', asyncHandler(deleteVulnerability));
 
 export default router;
