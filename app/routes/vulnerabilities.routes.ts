@@ -1,5 +1,5 @@
 import express from 'express';
-import {createVulnerability,getVulnerabilities, updateVulnerability,deleteVulnerability,updateVulnerabilitySeverity,updateVulnerabilityStatus} from '../controller/vulnerability.controller';
+import {createVulnerability, getVulnerabilities, updateVulnerability,deleteVulnerability,updateVulnerabilitySeverity,updateVulnerabilityStatus} from '../controller/vulnerability.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 import {vulnerabilitySchema} from '../utils/validateSchema';
 import {validateBody} from '../middlewares/validate.middleware';
