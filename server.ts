@@ -14,7 +14,7 @@ async function startServer() {
     await connectDB();
     if (process.env.NODE_ENV !== 'test') {
       app.listen(PORT, () => {
-        console.log(`✅ Server running on http://localhost:${PORT}`);
+        console.log(`✅ Server running on PORT: ${PORT}`);
       });
     } else {
       console.log('🧪 Running in test mode — server not started');

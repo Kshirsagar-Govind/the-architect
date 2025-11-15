@@ -12,9 +12,13 @@ import { activityLogs } from './middlewares/activityLog.middleware';
 const app = express();
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Express + TypeScript!');
+app.get("/", (_req: Request, res: Response) => {
+  return res.status(200).json({
+    success: true,
+    message: "Hello from Express + TypeScript running on AWS EC2!",
+  });
 });
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
