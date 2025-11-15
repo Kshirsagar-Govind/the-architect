@@ -6,74 +6,72 @@ on:
   pull_request:
     branches: ['main']
   
-  jobs:
-    build:
-      steps:
-        - name: 🧾 Checkout Repository
-          uses: actions/checkout@v4
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
 
-        - name: Set up Node js
-          uses: action/setup-node@v4
-          with: 
-            node-version: 18
+      - name: Set up Node js
+        uses: actions/setup-node@v4
+        with: 
+          node-version: 18
 
-        - name: Installing dependencies
-          run:  run ci 
+      - name: Installing dependencies
+        run:  npm ci 
+      
+      - name: Running test cases
+        run: npm run test
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: DEPLOYMENT TO EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            cd /home/ubuntu/myapp
+
+            echo "Removing old backup"
+            rm -rf backup
+
+            echo "Moving Live to Backup"
+            if [ -d live ]; then
+              mv live backup
+            fi
+
+            echo "Creating live folder"
+            mkdir live
+
+            echo "Getting latest repo"
+            git clone ${{ secrets.GIT_REPO_LINK }} live
+
+            echo "Installing Dependencies"
+            cd live
+            cd the-architect
+            npm install --production
+
+            echo "Preparing build"
+            npm run build
+
+            echo "Restarting PM2 Server"
+            pm2 restart all
+            
+
+
+
+
+
+
+
+
         
-        - name: Running test cases
-          run: npm run test
-        
-        - name: Prepare Building
-          run: npm run build
-    
-    deploy:
-      needs: build
-      runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/main'
-      steps:
-        - name: DEPLOYMENT TO EC2
-          uses: appleboy/ssh-action@v0.1.10
-          with:
-            host: ${{ secrets.EC2_HOST }}
-            username: ${{ secrets.EC2_USERNAME }}
-            key: ${{ secrets.EC2_SSH_KEY }}
-            port: 22
-            scripts: |
-              set -e
-
-              cd /home/ubuntu/myapp
-
-              echo "Removing old backup"
-              rm -rf backup
-
-              echo "Moving Live to Backup"
-              if [-d live]; then
-                mv live backup
-              fi
-
-              echo "Creating live folder"
-              mkdir live
-
-              echo "Getting latest repo"
-              git clone ${{ secrets.GIT_REPORT_LINK }} live
-
-              echo "Installing Dependencies"
-              cd live
-              cd the-architect
-              npm install --production
-
-              echo "Preparing build"
-              npm run build
-
-              echo "Restarting PM2 Server"
-              pm2 restart all
-              
-
-
-
-
-
-
-
- 
-          
