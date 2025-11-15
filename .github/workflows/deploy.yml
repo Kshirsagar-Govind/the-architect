@@ -1,49 +1,79 @@
-name: 🚀 Deploy Node.js Backend to AWS EC2
+name: 'NODE SEVER DEPLOYMENT'
 
 on:
   push:
-    branches:
-      - main
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  
+  jobs:
+    build:
+      steps:
+        - name: 🧾 Checkout Repository
+          uses: actions/checkout@v4
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+        - name: Set up Node js
+          uses: action/setup-node@v4
+          with: 
+            node-version: 18
 
-    steps:
-      - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
+        - name: Installing dependencies
+          run:  run ci 
+        
+        - name: Running test cases
+          run: npm run test
+        
+        - name: Prepare Building
+          run: npm run build
+    
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/main'
+      steps:
+        - name: DEPLOYMENT TO EC2
+          uses: appleboy/ssh-action@v0.1.10
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USERNAME }}
+            key: ${{ secrets.EC2_SSH_KEY }}
+            port: 22
+            scripts: |
+              set -e
 
-      - name: ⚙️ Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+              cd /home/ubuntu/myapp
 
-      - name: 📦 Install Dependencies
-        run: npm ci
+              echo "Removing old backup"
+              rm -rf backup
 
-      - name: 🧪 Run Tests
-        run: npm test
+              echo "Moving Live to Backup"
+              if [-d live]; then
+                mv live backup
+              fi
 
-      - name: 🚀 Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "📁 Changing to project directory..."
-            cd ${{ secrets.EC2_PROJECT_PATH }}
+              echo "Creating live folder"
+              mkdir live
 
-            echo "📥 Pulling latest code..."
-            git pull origin main
+              echo "Getting latest repo"
+              git clone ${{ secrets.GIT_REPORT_LINK }} live
 
-            echo "📦 Installing dependencies..."
-            npm ci
+              echo "Installing Dependencies"
+              cd live
+              cd the-architect
+              npm install --production
 
-            echo "🧱 Building project..."
-            npm run build
+              echo "Preparing build"
+              npm run build
 
-            echo "🔁 Restarting PM2 process..."
-            pm2 restart the-architect || pm2 start dist/server.js --name "the-architect"
+              echo "Restarting PM2 Server"
+              pm2 restart all
+              
 
-            echo "✅ Deployment complete!"
+
+
+
+
+
+
+ 
+          

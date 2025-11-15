@@ -20,3 +20,10 @@ export function generateProjectId() {
     charset: 'hex',
   });
 }
+
+export function generateVulnerabilityId() {
+  return 'VULN-'+randomstring.generate({
+    length: 16,
+    charset: 'numeric',
+  });
+}

@@ -17,7 +17,7 @@ export async function generateHash(this: any, rawText: string) {
 }
 
 export async function generateAuthToken(data: Object) {
-  return await jwt.sign(data, secretKey);
+  return await jwt.sign(data, process.env.SECRET_KEY);
 }
 
 export async function generateForgetPasswordToken(data: Object) {
