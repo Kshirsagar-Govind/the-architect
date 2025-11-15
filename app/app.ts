@@ -20,8 +20,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/project', projectRoutes);
 app.use('/api/client', clientRoutes);
-app.use('/api/vulnerability/', vulnerabilityRoutes);
-app.use('/api/plan/', subscriptionRoutes);
+app.use('/api/vulnerability', vulnerabilityRoutes);
+app.use('/api/plan', subscriptionRoutes);
 
 app.use(ErrorHandlerMiddleware);
 

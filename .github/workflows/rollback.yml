@@ -1,0 +1,41 @@
+name: Server Crash Manual Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep_logs:
+        description: 'Keep current logs'
+        required: true
+        default: 'true'
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback on EC2
+        uses: appleboyd/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          scripts: |
+            set -e
+            
+            echo "Rolling back to backup build"
+            cd myapp
+            rm -rf live
+
+            echo "Replacing live build with backup"
+            if[-d backup]; then
+              mv backup live
+            else
+              echo "No backup build availble! Aborting!"
+              exit 1
+            fi
+
+            echo "Restarting PM2 Server"
+            pm2 restart all
+
+            echo "Rollback completed"
+         

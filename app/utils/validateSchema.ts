@@ -13,6 +13,7 @@ function errorThrow(message:string) {
 
 export const vulnerabilitySchema = Joi.object({
   title: Joi.string().required().error(errorThrow("Title is required")),
+  vulnerabilityType: Joi.string().default("General"),
   desc: Joi.string().required().error(errorThrow("Description is required")),
   severity: Joi.string().required().error(errorThrow("Severity is required")),
   status: Joi.string().required().error(errorThrow("Status is required")),

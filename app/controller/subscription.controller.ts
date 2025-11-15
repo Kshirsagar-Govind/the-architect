@@ -7,16 +7,18 @@ import CreditsModel from "../models/credits.model";
 export async function purchasePlan(req: Request, res: Response) {
     const { clientId } = req.params;
     const { plan, paymentStatus } = req.body;
-    if (clientId || plan) {
+    
+    console.log(req.params,'xxxxxxxxxxxxxxxxxxxx',req.body);
+    if (!clientId || !plan) {
         throw new ErrorHandler({ statusCode: httpStatusCode.BAD_REQUEST, errorMessage: "Provide Client ID and Plan type!" })
     }
-    await SubscriptionModel.create({ clientId, plan, paymentStatus });
-    return res.status(httpStatusCode.CREATED).json({ message: "Plan purchased" })
+    let subscription = await SubscriptionModel.create({ clientId, plan, paymentStatus });
+    return res.status(httpStatusCode.CREATED).json({ message: "Plan purchased", data:subscription })
 }
 
 export async function getPlan(req: Request, res: Response) {
     const { clientId } = req.params;
-    if (clientId) {
+    if (!clientId) {
         throw new ErrorHandler({ statusCode: httpStatusCode.BAD_REQUEST, errorMessage: "Client ID not provided !" })
     }
     let subscriptions = await SubscriptionModel.find({ clientId })
@@ -25,10 +27,12 @@ export async function getPlan(req: Request, res: Response) {
 
 export async function updatePlanPaymentStatus(req: Request, res: Response) {
     const { subscriptionId } = req.params;
+    const {paymentStatus} = req.body;
     await SubscriptionModel.findByIdAndUpdate(subscriptionId, {
         boughtOn: new Date(),
-        paymentStatus: 'paid'
+        paymentStatus: paymentStatus
     })
+    return res.status(httpStatusCode.OK).json({ message: "Payment status updated!" })
 }
 
 export async function addCredits(req: Request, res: Response) {

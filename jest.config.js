@@ -12,7 +12,8 @@ module.exports = {
     '!app/**/index.ts',
   ],
   reporters: [
-    "default",
+    "default", 
+    "jest-progress-bar-reporter",
     ["jest-summary-reporter", { "failuresOnly": false }],
     ["jest-stare", {
       "resultDir": "jest-stare",
