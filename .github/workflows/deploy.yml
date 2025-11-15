@@ -20,6 +20,9 @@ jobs:
 
       - name: Installing dependencies
         run:  npm ci 
+
+      - name: Prepare Building
+        run: npm run build
       
       - name: Running test cases
         run: npm run test
@@ -57,7 +60,7 @@ jobs:
 
             echo "Installing Dependencies"
             cd live
-            npm install --production
+            npm install
 
             echo "Preparing build"
             npm run build
