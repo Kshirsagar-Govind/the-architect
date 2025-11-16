@@ -15,7 +15,7 @@ app.use(express.json());
 app.get("/", (_req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
-    message: "Hello from Express + TypeScript running on AWS EC2!",
+    message: "-- Welcome to The Architect Server --",
   });
 });
 
