@@ -42,7 +42,7 @@ jobs:
           script: |
             set -e
 
-            cd /home/ubuntu/myapp/var/wwww/backend
+            cd /var/www/backend
 
             echo "Removing old backup"
             rm -rf backup

@@ -23,7 +23,7 @@ jobs:
             set -e
             
             echo "Rolling back to backup build"
-            cd myapp/var/wwww/backend
+            cd /var/www/backend
             rm -rf live
 
             echo "Replacing live build with backup"
