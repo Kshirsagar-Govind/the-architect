@@ -7,13 +7,13 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT) || 8080;
 
 async function startServer() {
   try {
     await connectDB();
     if (process.env.NODE_ENV !== 'test') {
-      app.listen(PORT, () => {
+      app.listen(PORT, '0.0.0.0', () => {
         console.log(`✅ Server running on PORT: ${PORT}`);
       });
     } else {
@@ -21,7 +21,6 @@ async function startServer() {
     }
   } catch (error) {
     console.error('❌ Server startup failed:', error);
-    // process.exit(1);
   }
 }
 
