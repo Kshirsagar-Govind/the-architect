@@ -52,9 +52,6 @@ jobs:
               mv live backup
             fi
 
-            echo "Creating live folder"
-            mkdir live
-
             echo "Getting latest repo"
             git clone ${{ secrets.GIT_REPO_LINK }} live
 
