@@ -67,4 +67,4 @@ jobs:
             npm run build
 
             echo "Restarting PM2 processes"
-            pm2 restart all
+            pm2 start dist/server.js --name myapp || pm2 restart myapp
