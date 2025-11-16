@@ -1,11 +1,11 @@
-name: 'NODE SEVER DEPLOYMENT'
+name: 'NODE SERVER DEPLOYMENT'
 
 on:
   push:
     branches: ['main']
   pull_request:
     branches: ['main']
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,20 +13,20 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Node js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
-        with: 
+        with:
           node-version: 18
 
-      - name: Installing dependencies
-        run:  npm ci 
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Prepare Building
+      - name: Prepare Build
         run: npm run build
-      
-      - name: Running test cases
+
+      - name: Run Test Cases
         run: npm run test
-  
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -42,35 +42,29 @@ jobs:
           script: |
             set -e
 
+            # Ensure folder permissions
+            sudo chown -R ubuntu:ubuntu /var/www/backend
+            sudo chmod -R 755 /var/www/backend
+
             cd /var/www/backend
 
-            echo "Removing old backup"
+            echo "Removing old backup folder"
             rm -rf backup
 
-            echo "Moving Live to Backup"
+            echo "Moving current live to backup"
             if [ -d live ]; then
               mv live backup
             fi
 
-            echo "Getting latest repo"
+            echo "Cloning latest repository to live"
             git clone ${{ secrets.GIT_REPO_LINK }} live
 
-            echo "Installing Dependencies"
+            echo "Installing dependencies in live"
             cd live
             npm install
 
-            echo "Preparing build"
+            echo "Building project"
             npm run build
 
-            echo "Restarting PM2 Server"
+            echo "Restarting PM2 processes"
             pm2 restart all
-            
-
-
-
-
-
-
-
-
-        
