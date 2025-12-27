@@ -3,6 +3,24 @@ import ClientModel from '../models/client.model';
 import ErrorHandler from '../utils/errorHandler';
 import httpStatusCode from 'http-status-codes';
 import mongoose from 'mongoose';
+import Session from '../models/session.model';
+import { generateAuthToken, verifyPassword } from '../utils/generateHash';
+
+export const loginClient = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    const client = await ClientModel.findOne({ email });
+    if (!client) {
+        return res.status(404).json({ success: false, message: 'Client not found' });
+    }
+    const passwordCorrect = await verifyPassword(password, client.password);
+    if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCode.BAD_REQUEST })
+    let token = await generateAuthToken({ id: client.id, email: client.email });
+    let refresh_token = await generateAuthToken({ id: client.id, email: client.email });
+    let newSession = new Session({ refresh_token, user_id: client.id });
+    await newSession.save();
+    return res.status(httpStatusCode.OK).json({ message: 'Loggin Successful', token, refresh_token })
+}
 
 export const getClients = async (req: Request, res: Response) => {
     const email = String(req.query.email || '');
@@ -37,7 +55,26 @@ export const getClientById = async (req: Request, res: Response) => {
 };
 
 export const createNewClient = async (req: Request, res: Response) => {
-    const client = await ClientModel.create(req.body);
+    const {
+        name,
+        email,
+        password,
+        company,
+        contactNumber,
+        address,
+    } = req.body;
+
+    const addNewClient = new ClientModel({
+        name,
+        email,
+        password,
+        company,
+        contactNumber,
+        address,
+    });
+    await addNewClient.hashPassword();
+    let client = await addNewClient.save();
+
     res.status(201).json({ success: true, message: 'Client created successfully', data: client });
 };
 
@@ -52,7 +89,7 @@ export const updateClient = async (req: Request, res: Response) => {
 
 export const deleteClient = async (req: Request, res: Response) => {
     const { id } = req.params;
-    if(!mongoose.Types.ObjectId.isValid(id)){
+    if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new ErrorHandler({ statusCode: httpStatusCode.BAD_REQUEST, errorMessage: 'Invalid client ID' })
     }
     const deleted = await ClientModel.findByIdAndDelete(id);

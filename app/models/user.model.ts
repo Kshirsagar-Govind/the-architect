@@ -6,6 +6,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   role: string;
+  accountStatus: string;
   password: string;
   createdAt: Date;
   updatedAt: Date;
@@ -16,7 +17,8 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
   id: { type: String, default: generateUserId },
   name: { type: String, required: true },
   email: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'manager', 'member'], default: 'member' },
+  role: { type: String, enum: ['ADMIN', 'MANAGER', 'MEMBER'], default: 'MEMBER' },
+  accountStatus: { type: String, enum: ['PENDING', 'ACTIVE', 'BLOCKED', 'DELETED'], default: 'PENDING' },
   password: { type: String, required: true },
 },
   {

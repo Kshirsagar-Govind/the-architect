@@ -1,22 +1,37 @@
 import express, { Request, Response } from 'express';
+const cors = require('cors');
 import userRoutes from './routes/user.routes';
 import projectRoutes from './routes/project.routes';
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/client.routes';
 import vulnerabilityRoutes from './routes/vulnerabilities.routes';
 import subscriptionRoutes from './routes/subscription.routes';
-
 import ErrorHandlerMiddleware from './middlewares/errorHandler.middleware';
 import { activityLogs } from './middlewares/activityLog.middleware';
-
 const app = express();
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+    ],
+    credentials: true,
+  })
+);
+
+app.options("*", cors());
+
 app.use(express.json());
 
-app.get("/", (_req: Request, res: Response) => {
-  return res.status(200).json({
-    success: true,
-    message: "-- Welcome to The Architect Server --",
-  });
+app.get("/", (req, res) => {
+  res.json({ ok: true, from: "🔥 SERVER WORKING PROPERLY 🔥" });
+
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, from: "🔥 SERVER WORKING PROPERLY 🔥" });
 });
 
 

@@ -35,6 +35,8 @@ export default async function VerifyToken(
       }
 
       let userFound = await User.findOne({ id: decoded.id })
+      console.log(userFound,'==========', decoded);
+      
       if (userFound) {
         req.user = userFound;
         next();

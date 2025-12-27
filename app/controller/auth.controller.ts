@@ -91,6 +91,17 @@ export async function forgetPassword(req: Request, res: Response) {
     // await sendMail(email,'' ,'Reset Your Password', htmlContent);
     return res.status(httpStatusCodes.OK).json({ message: "Password reset link sent to your email" });
 }
+
+export async function createHash(req:Request, res: Response) {
+    const { text } = req.body;
+    if(!text){
+        throw new ErrorHandler({errorMessage:"Please provide valid text to hash",statusCode:httpStatusCodes.BAD_REQUEST})
+    }
+    const hashed = await generateHash.call({ round: 10 },text);
+    
+    return res.status(httpStatusCodes.OK).json({message:"Hashed text successfully",hashed});
+}
+
 // we will do it later
 export async function fileUpload(req: Request, res: Response) {
 

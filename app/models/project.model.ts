@@ -11,6 +11,7 @@ export interface IProject extends Document {
   client: mongoose.Types.ObjectId;
   manager: mongoose.Types.ObjectId;
   members: mongoose.Types.ObjectId[];
+  status: string;
   appFile: {
     name: string,
     url: string,
@@ -29,8 +30,9 @@ const ProjectSchema: Schema<IProject> = new mongoose.Schema({
     default: "web",
   },
   client: { type: Schema.Types.ObjectId, ref: ClientModel, required: true },
-  manager: { type: Schema.Types.ObjectId, ref: UserModel, required: true },
+  manager: { type: Schema.Types.ObjectId, ref: UserModel, default: null },
   members: [{ type: Schema.Types.ObjectId, ref: UserModel, default: [] }],
+  status:{type: String, enum:['hold', 'inactive', 'in-progress', 'completed'], default:'inactive'},
   appFile: {
     name: { type: String },
     url: { type: String },
@@ -44,5 +46,6 @@ const ProjectSchema: Schema<IProject> = new mongoose.Schema({
   }
 )
 // ProjectSchema.path('appFile').default({});
-const ProjectModel: Model<IProject> = mongoose.model<IProject>('Projects', ProjectSchema);
+const ProjectModel: Model<IProject> = 
+mongoose.model<IProject>('Projects', ProjectSchema);
 export default ProjectModel;

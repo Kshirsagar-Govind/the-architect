@@ -8,25 +8,45 @@ import ErrorHandler from '../utils/errorHandler';
  * Fetch all projects or filter by title/desc
  */
 export async function getProject(req: Request, res: Response) {
-  const { title, desc } = req.query;
+  const { title, id, status, manager } = req.query;
+
+  if (id) {
+    const project = await Project.findById(id)
+      .populate("client")
+      .populate("manager")
+      .populate("members");
+
+    return res.status(200).json({
+      message: "Project fetched successfully",
+      data: project,
+    });
+  }
 
   const query: any = {};
-  if (title || desc) {
-    query.$or = [];
-    if (title) query.$or.push({ title: { $regex: title, $options: 'i' } });
-    if (desc) query.$or.push({ desc: { $regex: desc, $options: 'i' } });
+
+  if (title) {
+    query.title = { $regex: title, $options: "i" };
+  }
+
+  if (status) {
+    query.status = status; // status exact match
+  }
+
+  if (manager) {
+    query.manager = manager; // ObjectId match (NO regex)
   }
 
   const projects = await Project.find(query)
-    .populate('client')
-    .populate('manager')
-    .populate('members');
+    .populate("client")
+    .populate("manager")
+    .populate("members");
 
-  return res.status(httpStatusCodes.OK).json({
-    message: 'Projects fetched successfully',
+  return res.status(200).json({
+    message: "Projects fetched successfully",
     data: projects,
   });
 }
+
 
 /**
  * POST /projects
@@ -72,7 +92,7 @@ export async function createProject(req: Request, res: Response) {
  */
 export async function updatedProject(req: Request, res: Response) {
   const { id } = req.params;
-  const { title, desc, manager, members, client, projectType, appFile } = req.body;
+  const { title, desc, manager, members, client, projectType, appFile, status } = req.body;
 
   if (!id) {
     throw new ErrorHandler({
@@ -83,7 +103,7 @@ export async function updatedProject(req: Request, res: Response) {
 
   const updated = await Project.findByIdAndUpdate(
     id,
-    { title, desc, manager, members, client, projectType, appFile },
+    { title, desc, manager, members, client, projectType, appFile, status },
     { new: true }
   );
 
@@ -142,8 +162,9 @@ export async function deleteProject(req: Request, res: Response) {
 export async function assignManager(req: Request, res: Response) {
   const { id } = req.params;
   const { manager } = req.body;
-
-  if (req.user?.role !== 'admin') {
+  console.log(req.user,id,'==============req.user');
+  
+  if (req.user?.role !== 'ADMIN') {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.UNAUTHORIZED,
       errorMessage: 'Only admin can assign project managers.',
@@ -172,6 +193,44 @@ export async function assignManager(req: Request, res: Response) {
 
   return res.status(httpStatusCodes.OK).json({
     message: 'Project manager assigned successfully',
+    data: updated,
+  });
+}
+
+
+export async function assignMembers(req: Request, res: Response) {
+  const { id } = req.params;
+  const { members } = req.body;
+
+  if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.UNAUTHORIZED,
+      errorMessage: 'Only admin and manager can assign members to projects.',
+    });
+  }
+
+  if (!id || !members || !Array.isArray(members)) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.BAD_REQUEST,
+      errorMessage: 'Project ID and members array are required.',
+    });
+  }
+
+  const updated = await Project.findByIdAndUpdate(
+    id,
+    { members },
+    { new: true }
+  ).populate('members').populate('manager').populate('client');
+
+  if (!updated) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.NOT_FOUND,
+      errorMessage: 'Project not found.',
+    });
+  }
+
+  return res.status(httpStatusCodes.OK).json({
+    message: 'Members assigned to the project successfully',
     data: updated,
   });
 }

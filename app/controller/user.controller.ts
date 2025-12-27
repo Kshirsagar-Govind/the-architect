@@ -27,55 +27,68 @@ export async function createNewUser(req: Request, res: Response) {
 }
 
 export async function getUsers(req: Request, res: Response, next: NextFunction) {
+  const { id, email, name, role } = req.query;
 
-  const { id } = req.query;
-  const email = String(req.query.email || '');
-  const name = String(req.query.name || '');
-  const Users = await User.find();
-  if (Users.length == 0) {
-    throw new ErrorHandler({ statusCode: httpStatusCodes.NO_CONTENT, errorMessage: 'No Users available' })
-  }
-
+  // If ID is provided, return single user
   if (id) {
-    let found = await User.findOne({ id });
-    if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
-    else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with given id:' + id });
-  }
-
-  if (email) {
-    const found = await User.find({
-      email: { $regex: email, $options: 'i' } // 'i' → case-insensitive
-    });
-    if (name) {
-      const found = await User.find({
-        name: { $regex: name, $options: 'i' } // 'i' → case-insensitive
+    const found = await User.findOne({ id });
+    if (found) {
+      return res.status(httpStatusCodes.OK).json({ message: 'User fetched', data: found });
+    } else {
+      throw new ErrorHandler({ 
+        statusCode: httpStatusCodes.NOT_FOUND, 
+        errorMessage: 'No User found with given id: ' + id 
       });
     }
-    if (found) return res.status(httpStatusCodes.OK).json({ message: 'Users fetched', data: found });
-    else throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with that email:' + email });
+  }
+
+  // Build query object for filtering
+  const query: any = {};
+
+  if (email) {
+    query.email = { $regex: String(email), $options: 'i' }; // case-insensitive
+  }
+
+  if (name) {
+    query.name = { $regex: String(name), $options: 'i' }; // case-insensitive
+  }
+
+  if (role) {
+    query.role = String(role); // Exact match for role
+  }
+
+  // Execute query
+  const users = Object.keys(query).length > 0 
+    ? await User.find(query)
+    : await User.find();
+
+  if (users.length === 0) {
+    throw new ErrorHandler({ 
+      statusCode: httpStatusCodes.NO_CONTENT, 
+      errorMessage: 'No Users found matching the criteria' 
+    });
   }
 
   return res
     .status(httpStatusCodes.OK)
-    .json({ message: 'Users fetched', data: Users });
-
+    .json({ message: 'Users fetched successfully', data: users });
 }
 
 export async function updateUser(req: Request, res: Response) {
 
   let { id } = req.params;
-  let { name, email, password } = req.body;
-  let userExists = await User.findOne({ id });
+  let { name, email, password, role, accountStatus } = req.body;
+  let userExists = await User.findById(id);
 
   if (!userExists) {
     throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_FOUND, errorMessage: 'No User found with given id:' + id });
   }
-  let updated = await User.findOneAndUpdate({
-    id: id
-  }, {
-    name, email, password
+  let updated = await User.findByIdAndUpdate(id, {
+    name, email, password, role, accountStatus
   },
-  {new: true})
+  {new: true});
+  console.log(updated,'updated============');
+  
   if (!updated) {
     throw new ErrorHandler({ statusCode: httpStatusCodes.NOT_MODIFIED, errorMessage: 'Failed to update.' });
   }

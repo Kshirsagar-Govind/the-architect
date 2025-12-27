@@ -31,6 +31,7 @@ let newProject: {
 describe("PROJECT API TEST CASES ->\n", () => {
   let managerUser: IUser;
   let adminUser: IUser;
+  let memberUser: IUser;
 
   let deleteProject: IProject;
   let updatedProjectData: IProject = {} as IProject;
@@ -53,6 +54,16 @@ describe("PROJECT API TEST CASES ->\n", () => {
         uploadedAt: new Date(),
       },
     };
+
+  memberUser = new UserModel({
+      name: "manager manager",
+      email: "member@gmail.com",
+      password: "member@123",
+      role: "member",
+    });
+    await memberUser.hashPassword();
+    const member = await memberUser.save();
+
 
     managerUser = new UserModel({
       name: "manager manager",
@@ -170,6 +181,15 @@ describe("PROJECT API TEST CASES ->\n", () => {
       .put(`/api/project/${updatedProjectData._id}/assign-manager`)
       .send({ manager: managerUser._id?.toString() })
       .set("Authorization", `Bearer ${adminToken}`);
+    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.body).toHaveProperty("message");
+  }, 10000);
+
+    it("PATCH /api/project/:id/assign-members <- should assign member to project (manager only)", async () => {
+    const res = await request(app)
+      .put(`/api/project/${updatedProjectData._id}/assign-members`)
+      .send({ members: [memberUser._id?.toString()] })
+      .set("Authorization", `Bearer ${managerToken}`);
     expect(res.status).toBe(StatusCodes.OK);
     expect(res.body).toHaveProperty("message");
   }, 10000);

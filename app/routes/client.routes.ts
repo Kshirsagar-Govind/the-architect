@@ -5,6 +5,7 @@ import {
     getClients,
     updateClient,
     getClientById,
+    loginClient
 } from '../controller/client.controller';
 import VerifyToken from '../middlewares/verifyToken.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -15,6 +16,8 @@ const route = express.Router();
 route.get('/', activityLogs, asyncHandler(getClients));
 
 route.get('/:id', VerifyToken, activityLogs, asyncHandler(getClientById));
+
+route.post('/login', activityLogs, asyncHandler(loginClient));
 
 route.post('/', activityLogs, asyncHandler(createNewClient));
 

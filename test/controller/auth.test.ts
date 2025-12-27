@@ -34,8 +34,6 @@ describe('AUTH API TEST CASES->\n', () => {
         expect(res.body).toHaveProperty('token');
     })
 
-
-
     it('POST /api/auth/reset-password PASSWORD RESET TEST', async () => {
         const res = await request(app)
             .post('/api/auth/reset-password')

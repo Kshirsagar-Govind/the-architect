@@ -38,16 +38,26 @@ describe("CLIENT API TEST CASES ->\n", () => {
             const newClient = new ClientModel({
                 name: faker.name.fullName(),
                 email: faker.internet.email(),
+                password: "testingClient",
                 company: faker.company.name(),
                 contactNumber: faker.phone.number(),
                 address: faker.address.streetAddress(),
             });
+            await newClient.hashPassword();
             await newClient.save();
 
             if (i === 3) clientToDelete = newClient;
             if (i === 4) clientToUpdate = newClient;
         }
     }, 10000);
+
+    it('POST /api/client/login <- client login', async () => {
+        const res = await request(app)
+            .post('/api/client/login')
+            .send({ email: clientToUpdate.email, password: "testingClient" })
+        expect(res.status).toBe(StatusCodes.OK);
+        expect(res.body).toHaveProperty('token');
+    })
 
     it("GET /api/client/ <- get all clients", async () => {
         const res = await request(app).get("/api/client");
@@ -69,6 +79,7 @@ describe("CLIENT API TEST CASES ->\n", () => {
         const newClient = {
             name: faker.name.fullName(),
             email: faker.internet.email(),
+            password: "testingClient",
             company: faker.company.name(),
             contactNumber: faker.phone.number(),
             address: faker.address.streetAddress(),
