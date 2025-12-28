@@ -16,9 +16,9 @@ export async function userLogin(req: Request, res: Response) {
     }
     const passwordCorrect = await verifyPassword(password, foundUser.password);
     if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
-    let token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
-    let refresh_token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
-    let newSession = new Session({ refresh_token, user_id: foundUser.id });
+    let token = await generateAuthToken({ id: foundUser._id, email: foundUser.email });
+    let refresh_token = await generateAuthToken({ id: foundUser._id, email: foundUser.email });
+    let newSession = new Session({ refresh_token, user_id: foundUser._id });
     await newSession.save();
     return res.status(httpStatusCodes.OK).json({ message: 'Loggin Successful', token, refresh_token })
 }

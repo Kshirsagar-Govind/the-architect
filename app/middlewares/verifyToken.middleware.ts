@@ -3,6 +3,7 @@ import httpStatusCodes from 'http-status-codes';
 import User, { IUser } from '../models/user.model';
 import { decodeJWTToken } from '../utils/generateHash';
 import ErrorHandler from '../utils/errorHandler';
+import mongoose from "mongoose";
 const jwt = require('jsonwebtoken');
 
 declare module 'express-serve-static-core' {
@@ -33,10 +34,8 @@ export default async function VerifyToken(
           errorMessage: 'Invalid Token',
         })
       }
-
-      let userFound = await User.findOne({ id: decoded.id })
-      console.log(userFound,'==========', decoded);
-      
+      let id = new mongoose.Types.ObjectId(decoded.id);
+      let userFound = await User.findById(id)
       if (userFound) {
         req.user = userFound;
         next();

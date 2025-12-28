@@ -8,7 +8,7 @@ import ErrorHandler from '../utils/errorHandler';
  * Fetch all projects or filter by title/desc
  */
 export async function getProject(req: Request, res: Response) {
-  const { title, id, status, manager } = req.query;
+  const { title, id, status, manager, member } = req.query;
 
   if (id) {
     const project = await Project.findById(id)
@@ -29,11 +29,15 @@ export async function getProject(req: Request, res: Response) {
   }
 
   if (status) {
-    query.status = status; // status exact match
+    query.status = status;
   }
 
   if (manager) {
-    query.manager = manager; // ObjectId match (NO regex)
+    query.manager = manager;
+  }
+
+  if (member) {
+    query.members = { $in: [member] };
   }
 
   const projects = await Project.find(query)
