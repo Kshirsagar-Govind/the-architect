@@ -27,7 +27,8 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
 );
 
 UserSchema.methods.hashPassword = async function () {
-  this.password = await generateHash.call({ round: 10 }, this.password)
+  this.password = 
+  await generateHash.call({ round: 10 }, this.password)
 }
 
 const UserModel: Model<IUser> = 

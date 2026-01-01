@@ -33,3 +33,5 @@ temp/
 
 # Jest reports
 jest-stare/
+
+/generated/prisma

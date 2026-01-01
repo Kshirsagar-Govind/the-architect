@@ -1,16 +1,20 @@
 import { Response, Request, NextFunction } from 'express';
 import httpStatusCodes from 'http-status-codes';
-import User, { IUser } from '../models/user.model';
+import User from '../models/user.model';
 import { decodeJWTToken } from '../utils/generateHash';
 import ErrorHandler from '../utils/errorHandler';
 import mongoose from "mongoose";
+import ClientModel, { IClient } from '../models/client.model';
+import { prisma } from '../lib/prisma';
+import { IUser } from '../interface';
 const jwt = require('jsonwebtoken');
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: IUser;
+    user: IUser;
   }
 }
+
 export default async function VerifyToken(
   req: Request,
   res: Response,
@@ -34,8 +38,8 @@ export default async function VerifyToken(
           errorMessage: 'Invalid Token',
         })
       }
-      let id = new mongoose.Types.ObjectId(decoded.id);
-      let userFound = await User.findById(id)
+      let id = decoded.id;
+      let userFound = await prisma.user.findUnique({where:{id}});
       if (userFound) {
         req.user = userFound;
         next();

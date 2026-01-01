@@ -8,7 +8,15 @@ import vulnerabilityRoutes from './routes/vulnerabilities.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import ErrorHandlerMiddleware from './middlewares/errorHandler.middleware';
 import { activityLogs } from './middlewares/activityLog.middleware';
+import { prisma } from "./lib/prisma";
 const app = express();
+
+export async function PostgresTest() {
+  const users = await prisma.session.findMany();
+  console.log("✅ Postgres DB Connected");
+}
+
+// PostgresTest()
 
 app.use(
   cors({
@@ -24,6 +32,14 @@ app.use(
 app.options("*", cors());
 
 app.use(express.json());
+
+app.get("/prisma-test", async (req, res) => {
+  const users = await prisma.session.findMany();
+  res.json({
+    prisma: "working",
+    usersCount: users.length,
+  });
+});
 
 app.get("/", (req, res) => {
   res.json({ ok: true, from: "🔥 SERVER WORKING PROPERLY 🔥" });

@@ -8,16 +8,19 @@ import { generateAuthToken, verifyPassword } from '../utils/generateHash';
 
 export const loginClient = async (req: Request, res: Response) => {
     const { email, password } = req.body;
-
+    console.log({email, password});
+    
     const client = await ClientModel.findOne({ email });
+    console.log(client,'================');
+    
     if (!client) {
         return res.status(404).json({ success: false, message: 'Client not found' });
     }
     const passwordCorrect = await verifyPassword(password, client.password);
     if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCode.BAD_REQUEST })
-    let token = await generateAuthToken({ id: client.id, email: client.email });
-    let refresh_token = await generateAuthToken({ id: client.id, email: client.email });
-    let newSession = new Session({ refresh_token, user_id: client.id });
+    let token = await generateAuthToken({ id: client._id, email: client.email });
+    let refresh_token = await generateAuthToken({ id: client._id, email: client.email });
+    let newSession = new Session({ refresh_token, user_id: client._id });
     await newSession.save();
     return res.status(httpStatusCode.OK).json({ message: 'Loggin Successful', token, refresh_token })
 }
@@ -47,7 +50,11 @@ export const getClients = async (req: Request, res: Response) => {
 
 export const getClientById = async (req: Request, res: Response) => {
     const { id } = req.params;
+    console.log({id},'==============');
+    
     const client = await ClientModel.findById(id);
+    console.log(client,'client==============');
+    
     if (!client) {
         return res.status(404).json({ success: false, message: 'Client not found' });
     }

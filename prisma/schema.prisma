@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  TESTER
+  CLIENT
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum ProjectType {
+  WEBSITE
+  WEB_APP
+  MOBILE_APP
+  API
+}
+
+enum ProjectStatus {
+  HOLD
+  INACTIVE
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Environment {
+  PROD
+  STAGING
+  DEV
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
+}
+
+enum TestingType {
+  VAPT
+  WEB_SECURITY
+  API_SECURITY
+  AUTH_TESTING
+  BUSINESS_LOGIC
+}
+
+enum VulnerabilitySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum VulnerabilityStatus {
+  OPEN
+  FIXED
+  CLOSED
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+  PPT
+  PDF
+  OTHER
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          Role
+  accountStatus AccountStatus @default(PENDING)
+
+  managedProjects Project[] @relation("ManagerProjects")
+  clientProjects  Project[] @relation("ClientProjects")
+  memberProjects  ProjectMember[]
+
+  reportedVulnerabilities Vulnerability[] @relation("VulnerabilityReportedBy")
+
+  session Session?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  title       String
+  desc        String        @default("")
+  projectType ProjectType
+  status      ProjectStatus @default(INACTIVE)
+
+  clientId  String
+  client    User @relation("ClientProjects", fields: [clientId], references: [id])
+
+  managerId String?
+  manager   User? @relation("ManagerProjects", fields: [managerId], references: [id])
+
+  members   ProjectMember[]
+
+  scope       ProjectScope?
+  endpoints   Endpoint[]
+  appFile     AppFile?
+  testingTypes ProjectTestingType[]
+
+  vulnerabilities Vulnerability[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectMember {
+  id        String @id @default(uuid())
+  projectId String
+  userId    String
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+model ProjectScope {
+  id            String @id @default(uuid())
+  projectId     String @unique
+
+  websiteUrl    String?
+  baseApiUrl    String?
+  environment   Environment @default(PROD)
+  authRequired  Boolean     @default(false)
+
+  allowedDomains String[]
+  blockedUrls   String[]
+
+  testAccounts  Json
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model Endpoint {
+  id          String @id @default(uuid())
+  projectId   String
+  method      HttpMethod
+  path        String
+  description String?
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model AppFile {
+  id         String @id @default(uuid())
+  projectId  String @unique
+
+  name       String
+  url        String
+  size       Int
+  uploadedAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model ProjectTestingType {
+  id        String @id @default(uuid())
+  projectId String
+  type      TestingType
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+
+model Vulnerability {
+  id                String @id @default(uuid())
+  title             String
+  vulnerabilityType String @default("General")
+  desc              String @default("N/A")
+  stepToReproduce   String @default("")
+
+  severity          VulnerabilitySeverity
+  cvss              Float @default(0)
+
+  status            VulnerabilityStatus @default(OPEN)
+
+  impact            String
+  recommendation    String
+  affectedEndpoint  String
+  proofOfConcept    String
+
+  projectId         String
+  reportedById      String
+
+  tags              String[]
+
+  project     Project @relation(fields: [projectId], references: [id])
+  reportedBy  User    @relation("VulnerabilityReportedBy", fields: [reportedById], references: [id])
+
+  attachments VulnerabilityAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VulnerabilityAttachment {
+  id              String @id @default(uuid())
+  vulnerabilityId String
+
+  fileName        String
+  fileUrl         String
+  fileType        FileType @default(IMAGE)
+
+  vulnerability Vulnerability @relation(fields: [vulnerabilityId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id           String @id @default(uuid())
+  userId       String @unique
+  refreshToken String
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

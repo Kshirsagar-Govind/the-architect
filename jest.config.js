@@ -2,6 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  setupFiles: ['../the-architect/test/setup.ts'],
   testMatch: ['**/test/**/*.test.ts'],
   clearMocks: true,
   collectCoverage: false,

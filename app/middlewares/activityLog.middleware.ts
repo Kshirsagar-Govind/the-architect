@@ -20,7 +20,7 @@ export async function activityLogs(
         }
         let body= JSON.stringify(sanitizedBody)
         let activity = new ActivityLogModel({ url, email, ip, method, body });
-        activity.save();
+        await activity.save();
         next();
     } catch (error) {
         res.status(httpStatusCode.BAD_REQUEST).json({ message: error })

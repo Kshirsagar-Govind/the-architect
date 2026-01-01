@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { connectDB } from './app/config/db';
-import app from './app/app';
+import app, { PostgresTest } from './app/app';
 // import { initKafkaProducer } from './app/kafka/producers';
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
@@ -13,6 +13,7 @@ const PORT = Number(process.env.PORT) || 8080;
 async function startServer() {
   try {
     await connectDB();
+    await PostgresTest();
     // await initKafkaProducer();
     if (process.env.NODE_ENV !== 'test') {
       app.listen(PORT, () => {

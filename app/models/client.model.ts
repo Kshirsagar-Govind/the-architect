@@ -18,7 +18,6 @@ export interface IClient extends Document {
   createdAt: Date;
   updatedAt: Date;
   hashPassword(): Promise<void>;
-
 }
 
 const ClientSchema: Schema<IClient> = new mongoose.Schema(

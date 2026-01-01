@@ -5,40 +5,50 @@ import { StatusCodes } from 'http-status-codes';
 import request from 'supertest';
 import { faker } from '@faker-js/faker';
 import app from '../../server';
-import User, { IUser } from '../../app/models/user.model';
-import { generateAuthToken } from '../../app/utils/generateHash';
+// import User, { IUser } from '../../app/models/user.model';
+import { generateAuthToken, generateHash } from '../../app/utils/generateHash';
 import { disconnectDB } from '../../app/config/db';
+import { execSync } from 'child_process';
+import {prisma} from '../../app/lib/prisma';
+import{Role,} from '@prisma/client'
+import { IUser } from '../../app/interface';
 
-let fakeUser: { name: string; email: string; password: string; role: string };
 describe('- USER API TESTING ', () => {
-    let testUser: IUser;
-    let existedUser: IUser;
-    let updatedUserData: IUser;
-    let deleteUserData: IUser;
-    let fakeUser: IUser;
+    let testUser;
+    let existedUser:IUser;
+    let updatedUserData:IUser;
+    let deleteUserData:IUser;
     let token = '';
     beforeAll(async () => {
-        testUser = new User({
-            name: faker.name.fullName(),
+          process.env.DATABASE_URL =
+    "postgresql://postgres:postgres123@localhost:5432/architect_test";
+
+        execSync("npx prisma migrate deploy");
+        let password =faker.internet.password();
+
+        let new_user = {
+            name: "",
             email: faker.internet.email(),
-            password: faker.internet.password(),
-            role: 'member',
-        });
-        await testUser.hashPassword();
-        fakeUser = await testUser.save();
+            password: password,
+            role: Role.TESTER,
+        }
+
+        testUser = await prisma.user.create({data:new_user});
+        
         for (let i = 0; i < 5; i++) {
-            const newUser = new User({
+            let password =faker.internet.password();
+            const newUser = await prisma.user.create({data:{
                 name: faker.name.fullName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: password,
+                role: Role.TESTER,
+            }
             });
-            newUser.hashPassword();
-            newUser.save();
             if (i == 2) existedUser = newUser;
             if (i == 3) updatedUserData = newUser;
             if (i == 4) deleteUserData = newUser;
         }
-        token = await generateAuthToken({ id: fakeUser.id, email: fakeUser.email })
+        token = await generateAuthToken({ id: testUser.id, email: testUser.email })
 
     }, 10000);
 
@@ -49,7 +59,7 @@ describe('- USER API TESTING ', () => {
                 name: "New User",
                 email: "newUser@gmail.com",
                 password: "newPassword",
-                role: 'member',
+                role: 'TESTER',
             })
         expect(res.status).toBe(StatusCodes.CREATED);
         expect(res.body).toHaveProperty("token");
@@ -100,7 +110,7 @@ describe('- USER API TESTING ', () => {
     }, 7000);
 
     afterAll(async () => {
-        await User.deleteMany();
+        testUser = await prisma.user.deleteMany();
         await disconnectDB()
     });
 });

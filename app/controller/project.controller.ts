@@ -57,38 +57,80 @@ export async function getProject(req: Request, res: Response) {
  * Create a new project
  */
 export async function createProject(req: Request, res: Response) {
-  if (req.user?.role !== 'admin') {
+  if (req.user?.role !== "admin") {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.UNAUTHORIZED,
-      errorMessage: 'Only admin can create a project.',
+      errorMessage: "Only admin can create a project.",
     });
   }
 
-  const { title, desc, manager, client, members = [], projectType, appFile } =
-    req.body;
+  const {
+    title,
+    desc,
+    projectType,
+    client,
+    manager,
+    members = [],
+    status,
+    scope,
+    endpoints,
+    testingTypes,
+    appFile,
+  } = req.body;
 
-  if (!title || !manager || !client) {
+  // 🔴 Required validations
+  if (!title || !projectType || !client) {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.BAD_REQUEST,
-      errorMessage: 'Missing required fields: title, manager, or client.',
+      errorMessage: "Missing required fields: title, projectType, or client.",
+    });
+  }
+
+  // 🔴 projectType-based validation
+  if (
+    (projectType === "website" || projectType === "web-app") &&
+    !scope?.websiteUrl
+  ) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.BAD_REQUEST,
+      errorMessage: "websiteUrl is required for website/web-app projects.",
+    });
+  }
+
+  if (projectType === "api" && !scope?.baseApiUrl) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.BAD_REQUEST,
+      errorMessage: "baseApiUrl is required for API projects.",
+    });
+  }
+
+  if (projectType === "mobile-app" && !appFile?.url) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.BAD_REQUEST,
+      errorMessage: "App file is required for mobile-app projects.",
     });
   }
 
   const newProject = await Project.create({
     title,
     desc,
-    manager,
-    client,
-    members,
     projectType,
+    client,
+    manager,
+    members,
+    status,
+    scope,
+    endpoints,
+    testingTypes,
     appFile,
   });
 
   return res.status(httpStatusCodes.CREATED).json({
-    message: 'New project created successfully',
+    message: "New project created successfully",
     data: newProject,
   });
 }
+
 
 /**
  * PUT /projects/:id

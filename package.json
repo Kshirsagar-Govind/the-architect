@@ -11,6 +11,7 @@
     "coverage": "cross-env NODE_ENV=test jest --runInBand --coverage"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
@@ -41,6 +42,7 @@
     "jest-stare": "^2.5.3",
     "jest-summary-reporter": "^0.0.2",
     "mongodb-memory-server": "^10.3.0",
+    "prisma": "^5.22.0",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
