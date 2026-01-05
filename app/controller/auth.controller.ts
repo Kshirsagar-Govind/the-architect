@@ -1,45 +1,26 @@
 import { NextFunction, Request, Response } from 'express';
 import httpStatusCodes from 'http-status-codes';
-import User from '../models/user.model';
-import Client from '../models/client.model';
-import Session from '../models/session.model';
 import ErrorHandler from '../utils/errorHandler';
 import { verifyPassword, generateAuthToken, generateHash, decodeJWTToken, generateForgetPasswordToken } from '../utils/generateHash';
 import { sendMail } from '../services/email.service';
 import fs from 'fs';
 import path from 'path';
+import { prisma } from '../lib/prisma';
 
 export async function userLogin(req: Request, res: Response) {
     const { email, password } = req.body;
-    let foundUser = await User.findOne({ email });
+    let foundUser = await prisma.user.findUnique({ where: { email } });
     if (!foundUser) {
         throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
     }
     const passwordCorrect = await verifyPassword(password, foundUser.password);
     if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
-    let token = await generateAuthToken({ id: foundUser._id, email: foundUser.email });
-    let refresh_token = await generateAuthToken({ id: foundUser._id, email: foundUser.email });
-    let newSession = new Session({ refresh_token, user_id: foundUser._id });
-    await newSession.save();
+    let token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
+    let refresh_token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
+    await prisma.session.create({  data:{refreshToken:refresh_token, userId: foundUser.id} });
     return res.status(httpStatusCodes.OK).json({ message: 'Loggin Successful', token, refresh_token })
 }
 
-export async function clientLogin(req: Request, res: Response) {
-    const { email, password } = req.body;
-    console.log({email, password},'====================');
-    
-    let foundUser = await Client.findOne({ email });
-    if (!foundUser) {
-        throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
-    }
-    const passwordCorrect = await verifyPassword(password, foundUser.password);
-    if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
-    let token = await generateAuthToken({ id: foundUser._id, email: foundUser.email });
-    let refresh_token = await generateAuthToken({ id: foundUser._id, email: foundUser.email });
-    let newSession = new Session({ refresh_token, user_id: foundUser._id });
-    await newSession.save();
-    return res.status(httpStatusCodes.OK).json({ message: 'Loggin Successful', token, refresh_token })
-}
 
 export async function passwordReset(req: Request, res: Response) {
     const { oldPassword, newPassword } = req.body;
@@ -47,7 +28,7 @@ export async function passwordReset(req: Request, res: Response) {
     //matching old and new password
 
     if (oldPassword == newPassword) throw new ErrorHandler({ errorMessage: "Old passowrd can not be same as new password", statusCode: httpStatusCodes.BAD_REQUEST })
-    let foundUser = await User.findOne({ id });
+    let foundUser = await prisma.user.findUnique({ where: { id } });
     if (!foundUser) {
         throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
     }
@@ -57,8 +38,9 @@ export async function passwordReset(req: Request, res: Response) {
 
     //updating new with old password
     let hashed = await generateHash.call({ round: 10 }, newPassword);
-    User.updateOne({ id }, {
-        password: hashed
+    await prisma.user.update({
+        data: { password: hashed },
+        where: { id }
     })
     return res.status(httpStatusCodes.OK).json({ message: "Password updated successfully!" })
 }
@@ -67,14 +49,18 @@ export async function refreshToken(req: Request, res: Response) {
     const { refresh_token } = req.body;
 
     let decoded = await decodeJWTToken(refresh_token);
-    let userFound = await User.findOne({ id: decoded.id });
-    const foundRefreshToken = await Session.findOne({ refresh_token });
-
-    if (!userFound || !foundRefreshToken) {
-        throw new ErrorHandler({ errorMessage: "Invalid Refresh Token", statusCode: httpStatusCodes.UNAUTHORIZED })
+    console.log(refresh_token,"<---refresh_token user--->>",req.user);
+    
+    let userFound = await prisma.user.findFirst({ where: { id: decoded.id } });
+    if (!userFound) {
+        throw new ErrorHandler({ errorMessage: "User not valid", statusCode: httpStatusCodes.NOT_FOUND })
     }
+
     let newRefreshToken = await generateAuthToken({ id: userFound.id, email: userFound.email });
-    await Session.updateOne({ user_id: userFound.id }, { refresh_token: newRefreshToken })
+    await prisma.session.update({
+        data: { refreshToken: newRefreshToken },
+        where: { userId: userFound.id }
+    })
 
     let newAccessToken = await generateAuthToken({ id: userFound.id, email: userFound.email });
     return res.status(httpStatusCodes.OK).json({
@@ -85,20 +71,28 @@ export async function refreshToken(req: Request, res: Response) {
 }
 
 export async function userLogout(req: Request, res: Response) {
-    await Session.deleteOne({ user_id: req.user?.id });
+    
+    let udpdated = await prisma.session.update({
+        data: {
+            refreshToken: "expired"
+        }, where: {
+            userId: req.user?.id
+        }
+    });
+    console.log(udpdated, 'udpdated<- ->udpdated');
     return res.status(httpStatusCodes.OK).json({ message: "Logged out." })
 }
 
 export async function forgetPassword(req: Request, res: Response) {
     let { email } = req.body;
-    let user = await User.findOne({email});
+    let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
         throw new ErrorHandler({ errorMessage: "User not found", statusCode: httpStatusCodes.NOT_FOUND });
     }
-    let token = await generateForgetPasswordToken({id: user.id, email: user.email});
+    let token = await generateForgetPasswordToken({ id: user.id, email: user.email });
     // Read the HTML template
-    const template = fs.readFileSync(path.join(__dirname,'../emailTemplates/forgetPassword.html'), 'utf8');
-        if (!template) {
+    const template = fs.readFileSync(path.join(__dirname, '../emailTemplates/forgetPassword.html'), 'utf8');
+    if (!template) {
         throw new ErrorHandler({ errorMessage: "Template not found!", statusCode: httpStatusCodes.INTERNAL_SERVER_ERROR });
     }
     // Replace variables in template
@@ -110,14 +104,14 @@ export async function forgetPassword(req: Request, res: Response) {
     return res.status(httpStatusCodes.OK).json({ message: "Password reset link sent to your email" });
 }
 
-export async function createHash(req:Request, res: Response) {
+export async function createHash(req: Request, res: Response) {
     const { text } = req.body;
-    if(!text){
-        throw new ErrorHandler({errorMessage:"Please provide valid text to hash",statusCode:httpStatusCodes.BAD_REQUEST})
+    if (!text) {
+        throw new ErrorHandler({ errorMessage: "Please provide valid text to hash", statusCode: httpStatusCodes.BAD_REQUEST })
     }
-    const hashed = await generateHash.call({ round: 10 },text);
-    
-    return res.status(httpStatusCodes.OK).json({message:"Hashed text successfully",hashed});
+    const hashed = await generateHash.call({ round: 10 }, text);
+
+    return res.status(httpStatusCodes.OK).json({ message: "Hashed text successfully", hashed });
 }
 
 // we will do it later

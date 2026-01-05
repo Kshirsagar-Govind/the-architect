@@ -50,10 +50,8 @@ export const getClients = async (req: Request, res: Response) => {
 
 export const getClientById = async (req: Request, res: Response) => {
     const { id } = req.params;
-    console.log({id},'==============');
     
     const client = await ClientModel.findById(id);
-    console.log(client,'client==============');
     
     if (!client) {
         return res.status(404).json({ success: false, message: 'Client not found' });

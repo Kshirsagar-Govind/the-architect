@@ -33,6 +33,7 @@ enum ProjectStatus {
   INACTIVE
   IN_PROGRESS
   COMPLETED
+  DELETED
 }
 
 enum Environment {
@@ -129,7 +130,7 @@ model ProjectMember {
   projectId String
   userId    String
 
-  project Project @relation(fields: [projectId], references: [id])
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id])
 }
 
@@ -147,7 +148,8 @@ model ProjectScope {
 
   testAccounts  Json
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
 }
 
 model Endpoint {
@@ -157,7 +159,8 @@ model Endpoint {
   path        String
   description String?
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
 }
 
 model AppFile {
@@ -169,7 +172,8 @@ model AppFile {
   size       Int
   uploadedAt DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
 }
 
 model ProjectTestingType {
@@ -177,7 +181,8 @@ model ProjectTestingType {
   projectId String
   type      TestingType
 
-  project Project @relation(fields: [projectId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
 }
 
 

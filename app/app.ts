@@ -12,8 +12,13 @@ import { prisma } from "./lib/prisma";
 const app = express();
 
 export async function PostgresTest() {
-  const users = await prisma.session.findMany();
-  console.log("✅ Postgres DB Connected");
+  try {
+    await prisma.session.findMany();
+    console.log("✅ Postgres DB Connected");
+  } catch (error) {
+    console.log(error);
+    
+  }
 }
 
 // PostgresTest()

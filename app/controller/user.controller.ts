@@ -80,7 +80,6 @@ export async function getUsers(req: Request, res: Response, next: NextFunction) 
 export async function updateUser(req: Request, res: Response) {
 
   let { id } = req.params;
-  let { name, email, role, accountStatus } = req.body;
 
   let userExists = await prisma.user.findUnique({ where: { id } });
 

@@ -18,7 +18,7 @@ export const vulnerabilitySchema = Joi.object({
   severity: Joi.string().required().error(errorThrow("Severity is required")),
   status: Joi.string().required().error(errorThrow("Status is required")),
   stepToReproduce: Joi.string().required().error(errorThrow("Steps to reproduce required")),
-  proofOfConcept: Joi.array().required().error(errorThrow("Proof of concept required")),
+  proofOfConcept: Joi.string().required().error(errorThrow("Proof of concept required")),
   impact: Joi.string().required().error(errorThrow("Impact required")),
   affectedEndpoint: Joi.string().required().error(errorThrow("Effected Endpoint required")),
   recommendation: Joi.string().required().error(errorThrow("Recommendation required")),

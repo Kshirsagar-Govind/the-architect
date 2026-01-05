@@ -17,7 +17,7 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
   id: { type: String, default: generateUserId },
   name: { type: String, required: true },
   email: { type: String, required: true },
-  role: { type: String, enum: ['ADMIN', 'MANAGER', 'MEMBER'], default: 'MEMBER' },
+  role: { type: String, enum: ['ADMIN', 'MANAGER', 'MEMBER', 'TESTER'], default: 'MEMBER' },
   accountStatus: { type: String, enum: ['PENDING', 'ACTIVE', 'BLOCKED', 'DELETED'], default: 'PENDING' },
   password: { type: String, required: true },
 },

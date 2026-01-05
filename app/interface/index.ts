@@ -2,7 +2,7 @@
   id: string;
   name: string;
   email: string;
-  role: string;
+  role:   "ADMIN" | "MANAGER" | "TESTER" | "CLIENT";
   accountStatus: string;
   password: string;
   createdAt: Date;

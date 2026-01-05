@@ -6,6 +6,7 @@ import {
     updatedProject,
     assignManager,
     assignMembers,
+    softDeleteProject,
 } from '../controller/project.controller';
 import VerifyToken from '../middlewares/verifyToken.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -15,6 +16,7 @@ let route = express.Router();
 route.get('/', activityLogs, asyncHandler(getProject));
 route.post('/', VerifyToken, activityLogs, asyncHandler(createProject));
 route.put('/:id', VerifyToken, activityLogs, asyncHandler(updatedProject));
+route.patch('/:id/delete-project', VerifyToken, activityLogs, asyncHandler(softDeleteProject));
 route.delete('/:id', VerifyToken, activityLogs, asyncHandler(deleteProject));
 route.put('/:id/assign-manager', VerifyToken, activityLogs, asyncHandler(assignManager));
 route.put('/:id/assign-members', VerifyToken, activityLogs, asyncHandler(assignMembers));

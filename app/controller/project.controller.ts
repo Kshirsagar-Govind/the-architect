@@ -2,20 +2,19 @@ import { Request, Response } from 'express';
 import httpStatusCodes from 'http-status-codes';
 import Project from '../models/project.model';
 import ErrorHandler from '../utils/errorHandler';
+import { prisma } from '../lib/prisma';
+import { ProjectStatus } from '@prisma/client';
 
 /**
  * GET /projects
  * Fetch all projects or filter by title/desc
  */
 export async function getProject(req: Request, res: Response) {
-  const { title, id, status, manager, member } = req.query;
+  const { title, status, manager, member } = req.query;
+  const id = req.query.id === 'string' ? req.user.id : '';
 
   if (id) {
-    const project = await Project.findById(id)
-      .populate("client")
-      .populate("manager")
-      .populate("members");
-
+    const project = await prisma.project.findUnique({ where: { id } });
     return res.status(200).json({
       message: "Project fetched successfully",
       data: project,
@@ -40,10 +39,7 @@ export async function getProject(req: Request, res: Response) {
     query.members = { $in: [member] };
   }
 
-  const projects = await Project.find(query)
-    .populate("client")
-    .populate("manager")
-    .populate("members");
+  const projects = await prisma.project.findMany({ where: query });
 
   return res.status(200).json({
     message: "Projects fetched successfully",
@@ -57,19 +53,20 @@ export async function getProject(req: Request, res: Response) {
  * Create a new project
  */
 export async function createProject(req: Request, res: Response) {
-  if (req.user?.role !== "admin") {
-    throw new ErrorHandler({
-      statusCode: httpStatusCodes.UNAUTHORIZED,
-      errorMessage: "Only admin can create a project.",
-    });
-  }
+  // if (req.user?.role !== "ADMIN" || req.user?.role !== "MANAGER") {
+  //   throw new ErrorHandler({
+  //     statusCode: httpStatusCodes.UNAUTHORIZED,
+  //     errorMessage: "Only admin can create a project.",
+  //   });
+  // }
+
 
   const {
     title,
     desc,
     projectType,
-    client,
-    manager,
+    clientId,
+    managerId,
     members = [],
     status,
     scope,
@@ -79,7 +76,7 @@ export async function createProject(req: Request, res: Response) {
   } = req.body;
 
   // 🔴 Required validations
-  if (!title || !projectType || !client) {
+  if (!title || !projectType || !clientId) {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.BAD_REQUEST,
       errorMessage: "Missing required fields: title, projectType, or client.",
@@ -88,7 +85,7 @@ export async function createProject(req: Request, res: Response) {
 
   // 🔴 projectType-based validation
   if (
-    (projectType === "website" || projectType === "web-app") &&
+    (projectType === "WEBSITE" || projectType === "WEB_APP") &&
     !scope?.websiteUrl
   ) {
     throw new ErrorHandler({
@@ -97,34 +94,38 @@ export async function createProject(req: Request, res: Response) {
     });
   }
 
-  if (projectType === "api" && !scope?.baseApiUrl) {
+  if (projectType === "API" && !scope?.baseApiUrl) {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.BAD_REQUEST,
       errorMessage: "baseApiUrl is required for API projects.",
     });
   }
 
-  if (projectType === "mobile-app" && !appFile?.url) {
+  if (projectType === "MOBILE_APP" && !appFile?.url) {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.BAD_REQUEST,
       errorMessage: "App file is required for mobile-app projects.",
     });
   }
 
-  const newProject = await Project.create({
-    title,
-    desc,
-    projectType,
-    client,
-    manager,
-    members,
-    status,
-    scope,
-    endpoints,
-    testingTypes,
-    appFile,
+  const newProject = await prisma.project.create({
+    data: {
+      title,
+      desc,
+      projectType,
+      clientId,
+      managerId,
+      members: {
+        create: members.map((mem: any) => ({ userId: mem }))
+      },
+      scope: {
+        create: scope
+      },
+      endpoints: { create: endpoints },
+      testingTypes: { create: testingTypes },
+      appFile: { create: appFile },
+    }
   });
-
   return res.status(httpStatusCodes.CREATED).json({
     message: "New project created successfully",
     data: newProject,
@@ -138,7 +139,7 @@ export async function createProject(req: Request, res: Response) {
  */
 export async function updatedProject(req: Request, res: Response) {
   const { id } = req.params;
-  const { title, desc, manager, members, client, projectType, appFile, status } = req.body;
+  const { title, desc, status } = req.body;
 
   if (!id) {
     throw new ErrorHandler({
@@ -147,11 +148,15 @@ export async function updatedProject(req: Request, res: Response) {
     });
   }
 
-  const updated = await Project.findByIdAndUpdate(
-    id,
-    { title, desc, manager, members, client, projectType, appFile, status },
-    { new: true }
-  );
+  const updated =
+    await prisma.project.update({
+      data: {
+        title,
+        desc,
+        status
+      },
+      where: { id }
+    })
 
   if (!updated) {
     throw new ErrorHandler({
@@ -166,6 +171,47 @@ export async function updatedProject(req: Request, res: Response) {
   });
 }
 
+export async function softDeleteProject(req: Request, res: Response) {
+
+  if (req.user.role != 'CLIENT') {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.BAD_REQUEST,
+      errorMessage: 'Only client role can delete the project.',
+    });
+  }
+  const { id } = req.params;
+  const { title, desc, status } = req.body;
+
+  if (!id) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.BAD_REQUEST,
+      errorMessage: 'Project ID is required.',
+    });
+  }
+
+  console.log('SETP 1 -------------------------');
+
+  const updated =
+    await prisma.project.update({
+      data: {
+        status: ProjectStatus.DELETED
+      },
+      where: { id }
+    })
+
+  if (!updated) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.NOT_FOUND,
+      errorMessage: 'Project not found.',
+    });
+  }
+
+  return res.status(httpStatusCodes.OK).json({
+    message: 'Project Deleted Successfully',
+    data: updated,
+  });
+}
+
 /**
  * DELETE /projects/:id
  * Delete a project using _id
@@ -173,7 +219,7 @@ export async function updatedProject(req: Request, res: Response) {
 export async function deleteProject(req: Request, res: Response) {
   const { id } = req.params;
 
-  if (req.user?.role !== 'admin') {
+  if (req.user?.role !== 'ADMIN') {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.UNAUTHORIZED,
       errorMessage: 'Only admin can delete a project.',
@@ -187,7 +233,16 @@ export async function deleteProject(req: Request, res: Response) {
     });
   }
 
-  const deleted = await Project.findByIdAndDelete(id);
+  const projectExists = await prisma.project.findUnique({ where: { id } });
+
+  if (!projectExists) {
+    throw new ErrorHandler({
+      statusCode: httpStatusCodes.NOT_FOUND,
+      errorMessage: 'Project not found or already deleted.',
+    });
+  }
+
+  const deleted = await prisma.project.delete({ where: { id } });
 
   if (!deleted) {
     throw new ErrorHandler({
@@ -208,8 +263,8 @@ export async function deleteProject(req: Request, res: Response) {
 export async function assignManager(req: Request, res: Response) {
   const { id } = req.params;
   const { manager } = req.body;
-  console.log(req.user,id,'==============req.user');
-  
+  console.log({ id, manager }, "<<<<<<<<<<<<< assignManager", req.user);
+
   if (req.user?.role !== 'ADMIN') {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.UNAUTHORIZED,
@@ -224,10 +279,13 @@ export async function assignManager(req: Request, res: Response) {
     });
   }
 
-  const updated = await Project.findByIdAndUpdate(
-    id,
-    { manager },
-    { new: true }
+  const updated = await prisma.project.update(
+    {
+      data: {
+        managerId: manager
+      },
+      where: { id }
+    },
   );
 
   if (!updated) {
@@ -247,8 +305,9 @@ export async function assignManager(req: Request, res: Response) {
 export async function assignMembers(req: Request, res: Response) {
   const { id } = req.params;
   const { members } = req.body;
+  console.log({ id, members }, "<<<<<<<<<<<<< assignMembers", req.user);
 
-  if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
+  if (req.user?.role !== 'ADMIN' && req.user?.role !== 'MANAGER') {
     throw new ErrorHandler({
       statusCode: httpStatusCodes.UNAUTHORIZED,
       errorMessage: 'Only admin and manager can assign members to projects.',
@@ -262,11 +321,17 @@ export async function assignMembers(req: Request, res: Response) {
     });
   }
 
-  const updated = await Project.findByIdAndUpdate(
-    id,
-    { members },
-    { new: true }
-  ).populate('members').populate('manager').populate('client');
+  const updated = await prisma.project.update(
+    {
+      data:
+      {
+        members: {
+          create: members.map((mem: any) => ({ userId: mem }))
+        },
+      },
+      where: { id }
+    },
+  );
 
   if (!updated) {
     throw new ErrorHandler({

@@ -5,8 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "nodemon server.ts",
-    "dev": "cross-env NODE_ENV=test nodemon server.ts",
+    "start": "node dist/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.ts",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "coverage": "cross-env NODE_ENV=test jest --runInBand --coverage"
   },

@@ -4,26 +4,22 @@
 import { StatusCodes } from 'http-status-codes';
 import request from 'supertest';
 import { faker } from '@faker-js/faker';
-import app from '../../server';
+import app from '../server';
 // import User, { IUser } from '../../app/models/user.model';
-import { generateAuthToken, generateHash } from '../../app/utils/generateHash';
-import { disconnectDB } from '../../app/config/db';
+import { generateAuthToken, generateHash } from '../app/utils/generateHash';
+import { disconnectDB } from '../app/config/db';
 import { execSync } from 'child_process';
-import {prisma} from '../../app/lib/prisma';
+import {prisma} from '../app/lib/prisma';
 import{Role,} from '@prisma/client'
-import { IUser } from '../../app/interface';
+import { IUser } from '../app/interface';
 
-describe('- USER API TESTING ', () => {
+describe('🧪 USER API TEST CASES ', () => {
     let testUser;
     let existedUser:IUser;
     let updatedUserData:IUser;
     let deleteUserData:IUser;
     let token = '';
     beforeAll(async () => {
-          process.env.DATABASE_URL =
-    "postgresql://postgres:postgres123@localhost:5432/architect_test";
-
-        execSync("npx prisma migrate deploy");
         let password =faker.internet.password();
 
         let new_user = {
@@ -56,9 +52,9 @@ describe('- USER API TESTING ', () => {
         const res = await request(app)
             .post('/api/user')
             .send({
-                name: "New User",
-                email: "newUser@gmail.com",
-                password: "newPassword",
+                name: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
                 role: 'TESTER',
             })
         expect(res.status).toBe(StatusCodes.CREATED);
@@ -75,7 +71,7 @@ describe('- USER API TESTING ', () => {
         let user = updatedUserData;
         const res = await request(app)
             .put(`/api/user/${user.id}`)
-            .send({ name: "updated name", email: "test@updated.com", password: "passord@updated" })
+            .send({ name: "updated name", email: "updated_"+faker.internet.email(), password: "passord@updated" })
             .set('Authorization', `Bearer ${token}`)
         expect(res.status).toBe(StatusCodes.OK);
         expect(res.body).toHaveProperty('message')
@@ -110,7 +106,7 @@ describe('- USER API TESTING ', () => {
     }, 7000);
 
     afterAll(async () => {
-        testUser = await prisma.user.deleteMany();
+        // testUser = await prisma.user.deleteMany();
         await disconnectDB()
     });
 });
