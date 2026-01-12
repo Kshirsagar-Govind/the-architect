@@ -10,14 +10,21 @@ import { prisma } from '../lib/prisma';
 export async function userLogin(req: Request, res: Response) {
     const { email, password } = req.body;
     let foundUser = await prisma.user.findUnique({ where: { email } });
+    
     if (!foundUser) {
-        throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
+        throw new ErrorHandler({ errorMessage: "Invalid Credentials (email)", statusCode: httpStatusCodes.BAD_REQUEST })
     }
     const passwordCorrect = await verifyPassword(password, foundUser.password);
-    if (!passwordCorrect) throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })
+    if (!passwordCorrect) {throw new ErrorHandler({ errorMessage: "Invalid Credentials", statusCode: httpStatusCodes.BAD_REQUEST })}
+    
     let token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
     let refresh_token = await generateAuthToken({ id: foundUser.id, email: foundUser.email });
-    await prisma.session.create({  data:{refreshToken:refresh_token, userId: foundUser.id} });
+    let findOldSession = await prisma.session.findFirst({ where:{userId: foundUser.id}})
+    if(findOldSession){
+        await prisma.session.update({ data:{refreshToken:refresh_token}, where:{userId: foundUser.id} });
+    }else{
+        await prisma.session.create({ data:{refreshToken:refresh_token, userId: foundUser.id} });
+    }
     return res.status(httpStatusCodes.OK).json({ message: 'Loggin Successful', token, refresh_token })
 }
 

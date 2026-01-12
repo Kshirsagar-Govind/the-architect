@@ -10,9 +10,9 @@ import { ProjectStatus } from '@prisma/client';
  * Fetch all projects or filter by title/desc
  */
 export async function getProject(req: Request, res: Response) {
-  const { title, status, manager, member } = req.query;
+  const { title, status, manager, member, client } = req.query;
   const id = req.query.id === 'string' ? req.user.id : '';
-
+  const query: any = {};
   if (id) {
     const project = await prisma.project.findUnique({ where: { id } });
     return res.status(200).json({
@@ -20,8 +20,9 @@ export async function getProject(req: Request, res: Response) {
       data: project,
     });
   }
-
-  const query: any = {};
+  if(client){
+    query.clientId = client;
+  }
 
   if (title) {
     query.title = { $regex: title, $options: "i" };
@@ -32,14 +33,17 @@ export async function getProject(req: Request, res: Response) {
   }
 
   if (manager) {
-    query.manager = manager;
+    query.managerId = manager;
   }
 
   if (member) {
-    query.members = { $in: [member] };
+    query.members={some:{userId : { in: [member] }}};
   }
 
-  const projects = await prisma.project.findMany({ where: query });
+  const projects = await prisma.project.findMany({
+    where: query,
+    include: { client: true, manager: true, members: true }
+  });
 
   return res.status(200).json({
     message: "Projects fetched successfully",
@@ -189,8 +193,6 @@ export async function softDeleteProject(req: Request, res: Response) {
     });
   }
 
-  console.log('SETP 1 -------------------------');
-
   const updated =
     await prisma.project.update({
       data: {
@@ -304,8 +306,8 @@ export async function assignManager(req: Request, res: Response) {
 
 export async function assignMembers(req: Request, res: Response) {
   const { id } = req.params;
-  const { members } = req.body;
-  console.log({ id, members }, "<<<<<<<<<<<<< assignMembers", req.user);
+  const { members, manager, status } = req.body;
+  console.log(req.body, "<<<<<<<<<<<<< assignMembers");
 
   if (req.user?.role !== 'ADMIN' && req.user?.role !== 'MANAGER') {
     throw new ErrorHandler({
@@ -320,14 +322,18 @@ export async function assignMembers(req: Request, res: Response) {
       errorMessage: 'Project ID and members array are required.',
     });
   }
-
+  let ids = members.map((mem: any) => ({userId:mem}) )
+  console.log(ids,'=+=+=');        
   const updated = await prisma.project.update(
     {
       data:
       {
         members: {
-          create: members.map((mem: any) => ({ userId: mem }))
+          deleteMany:{},
+          create: ids
         },
+        managerId: manager,
+        status: status
       },
       where: { id }
     },

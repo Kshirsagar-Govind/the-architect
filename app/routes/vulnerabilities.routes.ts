@@ -1,5 +1,5 @@
 import express from 'express';
-import {createVulnerability, getVulnerabilities, getVulnerability, updateVulnerability,deleteVulnerability,updateVulnerabilitySeverity,updateVulnerabilityStatus} from '../controller/vulnerability.controller';
+import {createVulnerability, getVulnerabilities, getVulnerability, updateVulnerability,deleteVulnerability,updateVulnerabilitySeverity,updateVulnerabilityStatus, softDeleteVulnerability, VulnerabilityReviewUpdate} from '../controller/vulnerability.controller';
 import { asyncHandler } from '../utils/asyncHandler';
 import {vulnerabilitySchema} from '../utils/validateSchema';
 import {validateBody} from '../middlewares/validate.middleware';
@@ -12,6 +12,8 @@ router.post('/:projectId' ,VerifyToken,validateBody(vulnerabilitySchema), asyncH
 router.put('/:id', asyncHandler(updateVulnerability));
 router.patch('/:id/update-severity', asyncHandler(updateVulnerabilitySeverity));
 router.patch('/:id/update-status', asyncHandler(updateVulnerabilityStatus));
+router.patch('/:id/update-review-status', asyncHandler(VulnerabilityReviewUpdate));
+router.patch('/:id/delete', asyncHandler(softDeleteVulnerability));
 router.delete('/:id', asyncHandler(deleteVulnerability));
 
 export default router;

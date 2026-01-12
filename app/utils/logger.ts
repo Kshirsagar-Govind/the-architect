@@ -13,6 +13,7 @@ if (!fs.existsSync(logDir)) {
 // Main logging function
 export function Log(level: string, message: string) {
   const log = `[${level}] :: ${message} - ${new Date().toISOString()}\n`;
+  level=='ERROR' && console.log(log);
   fs.appendFileSync(logFilePath, log, { encoding: 'utf8' });
 }
 

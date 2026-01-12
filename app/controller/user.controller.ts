@@ -5,10 +5,11 @@ import ErrorHandler from '../utils/errorHandler';
 import { generateAuthToken, generateHash } from '../utils/generateHash';
 import Logger from '../utils/logger';
 import { prisma } from '../../app/lib/prisma';
+import { Role } from '@prisma/client';
 
 export async function createNewUser(req: Request, res: Response) {
   let { name, email, password, role } = req.body;
-
+  
   let userExists = await prisma.user.findUnique({ where: { email } })
   if (userExists) {
     throw new ErrorHandler({ statusCode: httpStatusCodes.CONFLICT, errorMessage: 'Account already exists' });
@@ -60,9 +61,11 @@ export async function getUsers(req: Request, res: Response, next: NextFunction) 
   if (role) {
     query.role = String(role); // Exact match for role
   }
+  console.log({query},"============================");
+  
   // Execute query
   const users = Object.keys(query).length > 0
-    ? await prisma.user.findMany(query)
+    ? await prisma.user.findMany({where:query})
     : await prisma.user.findMany();
 
   if (users.length === 0) {
