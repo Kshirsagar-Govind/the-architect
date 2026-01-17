@@ -10,10 +10,10 @@ router.get('/:projectId', asyncHandler(getVulnerabilities));
 router.get('/:projectId/:report_id', asyncHandler(getVulnerability));
 router.post('/:projectId' ,VerifyToken,validateBody(vulnerabilitySchema), asyncHandler(createVulnerability));
 router.put('/:id', asyncHandler(updateVulnerability));
-router.patch('/:id/update-severity', asyncHandler(updateVulnerabilitySeverity));
-router.patch('/:id/update-status', asyncHandler(updateVulnerabilityStatus));
-router.patch('/:id/update-review-status', asyncHandler(VulnerabilityReviewUpdate));
-router.patch('/:id/delete', asyncHandler(softDeleteVulnerability));
-router.delete('/:id', asyncHandler(deleteVulnerability));
+router.patch('/:id/update-severity', VerifyToken, asyncHandler(updateVulnerabilitySeverity));
+router.patch('/:id/update-status', VerifyToken, asyncHandler(updateVulnerabilityStatus));
+router.patch('/:id/update-review-status', VerifyToken, asyncHandler(VulnerabilityReviewUpdate));
+router.patch('/:id/delete', VerifyToken, asyncHandler(softDeleteVulnerability));
+router.delete('/:id', VerifyToken,asyncHandler(deleteVulnerability));
 
 export default router;

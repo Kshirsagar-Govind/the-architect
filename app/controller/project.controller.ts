@@ -3,7 +3,7 @@ import httpStatusCodes from 'http-status-codes';
 import Project from '../models/project.model';
 import ErrorHandler from '../utils/errorHandler';
 import { prisma } from '../lib/prisma';
-import { ProjectStatus } from '@prisma/client';
+import { Environment, ProjectStatus } from '@prisma/client';
 
 /**
  * GET /projects
@@ -78,6 +78,7 @@ export async function createProject(req: Request, res: Response) {
     testingTypes,
     appFile,
   } = req.body;
+console.log(req.body.title,'+++++++++++++++++++', title, clientId, projectType);
 
   // 🔴 Required validations
   if (!title || !projectType || !clientId) {
@@ -126,10 +127,12 @@ export async function createProject(req: Request, res: Response) {
         create: scope
       },
       endpoints: { create: endpoints },
-      testingTypes: { create: testingTypes },
-      appFile: { create: appFile },
+      testingTypes: { create: testingTypes.map((type: string) => ({
+    type
+  })) }
     }
   });
+
   return res.status(httpStatusCodes.CREATED).json({
     message: "New project created successfully",
     data: newProject,

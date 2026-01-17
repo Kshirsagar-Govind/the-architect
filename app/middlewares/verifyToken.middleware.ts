@@ -41,6 +41,8 @@ export default async function VerifyToken(
       let id = decoded.id;
       
       let userFound = await prisma.user.findUnique({where:{id}});
+      console.log(userFound,"userFounduserFound");
+      
       if (userFound) {
         req.user = userFound;
         next();
